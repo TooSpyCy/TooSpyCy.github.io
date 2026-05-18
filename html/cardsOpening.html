@@ -1,0 +1,176 @@
+<!-- OUVERTURE DE PACKS -->
+<div id="packSelectorView">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📦 Ouvrir des Packs</div>
+      <div class="page-subtitle" id="packSubtitle">Chargement...</div>
+    </div>
+  </div>
+  <div class="pack-selector" id="packList"></div>
+</div>
+
+<div id="openingView" class="opening-screen hide">
+  <div class="page-header" style="width:100%;justify-content:center;text-align:center">
+    <div>
+      <div class="page-title" id="openingTitle">✨ Clique sur chaque carte !</div>
+      <div class="page-subtitle" id="revealCounter">0 / 5 révélées</div>
+    </div>
+  </div>
+
+  <div class="reveal-area" id="revealArea"></div>
+
+  <div class="opening-actions" id="openingActions" style="display:none">
+    <button class="btn-pink" onclick="revealAllCards()">Tout révéler ✨</button>
+    <button class="btn-outline" onclick="returnToPacks()">← Retour</button>
+  </div>
+</div>
+
+<script>
+let _revealed = 0;
+let _total    = 0;
+
+(async function () { await loadView(); })();
+
+async function loadView() {
+  const listEl    = document.getElementById('packList');
+  const subtitleEl = document.getElementById('packSubtitle');
+
+  if (!currentTwitchId) {
+    listEl.innerHTML = `
+      <div class="not-logged">
+        <div class="icon">🔒</div>
+        <p>Connecte-toi avec Twitch pour ouvrir des packs !</p>
+      </div>`;
+    subtitleEl.textContent = '';
+    return;
+  }
+
+  const count = currentProfile?.nbrpacks || 0;
+  subtitleEl.textContent = `Tu as ${count} pack${count > 1 ? 's' : ''} à ouvrir`;
+
+  if (count <= 0) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <p>Aucun pack disponible.</p>
+        <small>Les packs s'obtiennent via les points de chaîne Twitch !</small>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = `
+    <div class="pack-card" onclick="startOpening()">
+      <div class="pack-emoji">📦</div>
+      <div class="pack-info">
+        <span class="pack-name">Pack Spycy</span>
+        <span class="pack-desc">5 cartes aléatoires — piments × couleurs</span>
+        <span class="pack-meta">7 piments × 4 couleurs · ${count} disponible${count > 1 ? 's' : ''}</span>
+      </div>
+      <span class="pack-cta">Ouvrir →</span>
+    </div>`;
+}
+
+async function startOpening() {
+  document.getElementById('packSelectorView').classList.add('hide');
+  const view = document.getElementById('openingView');
+  view.classList.remove('hide');
+
+  const revealArea = document.getElementById('revealArea');
+  document.getElementById('openingTitle').textContent = '⏳ Tirage en cours...';
+  document.getElementById('revealCounter').textContent = '';
+  document.getElementById('openingActions').style.display = 'none';
+  revealArea.innerHTML = '<div class="loading-cards"><div class="spinner"></div></div>';
+
+  const drawn = await openPack();
+
+  if (!drawn) {
+    revealArea.innerHTML = `<div class="error-page"><p>❌ Erreur ou plus de packs disponibles.</p></div>`;
+    return;
+  }
+
+  _revealed = 0;
+  _total    = drawn.length;
+  updateCounter();
+  document.getElementById('openingTitle').textContent = '✨ Clique sur les cartes !';
+
+  const vStyles = {
+    vert:  { bg:'#0d2d1a', border:'#00e676' },
+    jaune: { bg:'#2d2600', border:'#ffd700' },
+    rouge: { bg:'#2d0a0a', border:'#ff1744' },
+    noir:  { bg:'#0d0d14', border:'#9c27b0' },
+  };
+
+  revealArea.innerHTML = drawn.map(({ carte: c, version: v }, i) => {
+    const s     = vStyles[v.color];
+    const image = c.image_url || '';
+    return `
+      <div class="flip-card cv-${v.color}" onclick="revealCard(this, '${v.color}')"
+           style="animation-delay:${i * 80}ms;animation:cardEntrance 0.4s ${i * 80}ms both">
+        <div class="flip-card-inner">
+          <div class="flip-face flip-front">
+            <div class="back-logo">🌶️</div>
+            <div class="back-label">TooSpycy</div>
+          </div>
+          <div class="flip-face flip-back"
+               style="--card-border:${s.border};--card-bg:${s.bg};border-color:${s.border};background:${s.bg}">
+            <div class="pepper-area">
+              ${image ? `<img src="${image}" alt="${c.name}">` : pepperSVG(v.color, c.scoville)}
+            </div>
+            <div class="card-info-reveal">
+              <span class="card-name">${c.name}</span>
+              <span class="card-version" style="color:${s.border}">${v.emoji} ${v.label}</span>
+              <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} SHU</span>
+            </div>
+            ${v.color === 'noir' ? '<div class="noir-shimmer"></div>' : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // CSS entrance animation
+  const style = document.createElement('style');
+  style.textContent = `@keyframes cardEntrance {
+    from { opacity:0; transform: translateY(20px) scale(0.9); }
+    to   { opacity:1; transform: none; }
+  }`;
+  document.head.appendChild(style);
+
+  setTimeout(() => {
+    document.getElementById('openingActions').style.display = 'flex';
+  }, _total * 80 + 400);
+}
+
+function revealCard(el, color) {
+  if (el.classList.contains('flipped')) return;
+  el.classList.add('flipped');
+  _revealed++;
+  updateCounter();
+
+  if (navigator.vibrate) {
+    if (color === 'noir')  navigator.vibrate([80, 40, 80, 40, 200]);
+    else if (color === 'rouge') navigator.vibrate([60, 30, 100]);
+    else navigator.vibrate(30);
+  }
+}
+
+function revealAllCards() {
+  document.querySelectorAll('.flip-card:not(.flipped)').forEach(card => {
+    const color = [...card.classList].find(c => c.startsWith('cv-'))?.replace('cv-','');
+    revealCard(card, color);
+  });
+}
+
+function updateCounter() {
+  document.getElementById('revealCounter').textContent =
+    _revealed >= _total
+      ? '🎉 Tout révélé !'
+      : `${_revealed} / ${_total} révélée${_revealed > 1 ? 's' : ''}`;
+}
+
+async function returnToPacks() {
+  await refreshProfile();
+  document.getElementById('openingView').classList.add('hide');
+  document.getElementById('packSelectorView').classList.remove('hide');
+  await loadView();
+}
+</script>

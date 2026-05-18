@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌶️ TooSpycySite</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="mobileStyle.css">
+  <link rel="icon" href="icones/Loo_sans_fond.png" type="image/png">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Fond -->
+  <div id="bgGradient"></div>
+  <div id="bgDots"></div>
+
+  <!-- ══ AUTH BAR ══════════════════════════════════════════════ -->
+  <div id="authBar">
+    <div id="userBadge" class="glass-pill" style="display:none">
+      <img id="userAvatar" src="" alt="" class="avatar">
+      <span id="userName"></span>
+    </div>
+    <button id="loginBtn" class="btn-twitch" onclick="loginWithTwitch()">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+        <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
+      </svg>
+      Connexion Twitch
+    </button>
+    <button id="logoutBtn" class="btn-ghost" style="display:none" onclick="logout()">Déco</button>
+  </div>
+
+  <!-- ══ LAYOUT ═════════════════════════════════════════════════ -->
+  <div class="container-fluid full-height">
+    <div class="row full-height phoneContainer">
+
+      <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+      <nav class="col-12 col-md-2 col-left">
+
+        <!-- Logo / home -->
+        <button class="nav-home active" name-page="home" title="Accueil">
+          <img src="icones/Loo_sans_fond.png" alt="🌶️" onerror="this.outerHTML='<span style=font-size:28px>🌶️</span>'">
+        </button>
+
+        <div class="nav-divider"></div>
+
+        <!-- Groupe Cartes -->
+        <div class="nav-group">
+          <span class="nav-group-label">Cartes</span>
+          <button class="nav-btn" name-page="cardsCollection">
+            <span class="nav-icon">🃏</span>
+            <span class="nav-text">Collection</span>
+          </button>
+          <button class="nav-btn" name-page="cardsOpening">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">Ouvrir</span>
+            <span id="packCountBadge" class="pack-badge" style="display:none">0</span>
+          </button>
+        </div>
+
+        <div class="nav-divider"></div>
+
+        <!-- Groupe Info -->
+        <div class="nav-group">
+          <span class="nav-group-label">Info</span>
+          <button class="nav-btn" name-page="probabilities">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Probabilités</span>
+          </button>
+        </div>
+
+      </nav>
+
+      <!-- ── CONTENU ─────────────────────────────────────────── -->
+      <main class="col-12 col-md-10 col-right">
+        <div class="mainScreenContainer" id="mainContent">
+          <!-- Chargé dynamiquement -->
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/cards.js"></script>
+
+  <script>
+    // Init
+    initAuth();
+    setNewHTML('home');
+
+    // Navigation
+    document.querySelectorAll('[name-page]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('[name-page].active').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        configureHTMLRoutes(this);
+      });
+    });
+  </script>
+</body>
+</html>

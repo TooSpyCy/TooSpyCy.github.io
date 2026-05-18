@@ -1,0 +1,66 @@
+/* ============================================================
+   MOBILE — SpycySite v2
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+  /* Auth compact */
+  #authBar { top: 8px; right: 8px; }
+  .btn-twitch { padding: 8px 12px; font-size: 12px; }
+
+  /* Nav → barre basse fixe */
+  .col-left {
+    position: fixed; bottom: 0; left: 0; right: 0; top: auto;
+    height: auto; flex-direction: row; justify-content: space-around;
+    align-items: center; padding: 8px 12px !important;
+    border-right: none; border-top: 1px solid var(--glass-border);
+    z-index: 200; background: rgba(12,8,20,0.92);
+    backdrop-filter: blur(20px);
+    overflow: visible; gap: 0;
+  }
+  .nav-home { width: 44px; height: 44px; margin-bottom: 0; }
+  .nav-divider { display: none; }
+  .nav-group { flex-direction: row; width: auto; gap: 0; }
+  .nav-group-label { display: none; }
+  .nav-btn {
+    flex-direction: column; gap: 2px; padding: 6px 10px;
+    font-size: 10px; align-items: center; width: auto;
+  }
+  .nav-text { font-size: 9px; }
+  .nav-icon { font-size: 18px; }
+
+  /* Contenu avec padding bas */
+  .col-right { height: auto; padding-bottom: 72px; }
+  .mainScreenContainer { padding: 16px 14px; }
+
+  /* Hero */
+  .home-hero { padding: 50px 0 20px; }
+  .home-hero h1 { font-size: 26px; }
+
+  /* Stream vertical */
+  .stream-wrapper { flex-direction: column; height: auto; }
+  .livestream_spycy { height: 200px; }
+  .livechat_spycy   { height: 220px; border-left: none; border-top: 1px solid var(--glass-border); }
+
+  /* Grille cartes */
+  .cards-grid { grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 10px; }
+
+  /* Flip cards plus petites */
+  .flip-card { width: 115px; height: 162px; }
+  .flip-front .back-logo  { font-size: 34px; }
+
+  /* Pack card compact */
+  .pack-card { padding: 14px 16px; }
+  .pack-emoji { font-size: 32px; }
+  .pack-name  { font-size: 14px; }
+
+  /* Filtres wrap */
+  .filter-bar { gap: 6px; }
+  .filter-chip { padding: 5px 10px; font-size: 11px; }
+}
+
+@media (max-width: 380px) {
+  .home-hero h1 { font-size: 22px; }
+  .cards-grid   { grid-template-columns: repeat(2, 1fr); }
+  .flip-card    { width: 100px; height: 140px; }
+}
