@@ -27,10 +27,10 @@
 <script>
   const VERSION_ORDER = ['vert', 'jaune', 'rouge', 'noir'];
   const VERSION_INFO = {
-    vert: { emoji: '🟢', label: 'Vert', color: '#00e676', bg: '#0d2d1a', glow: 'rgba(0,230,118,0.3)' },
-    jaune: { emoji: '🟡', label: 'Jaune', color: '#ffd700', bg: '#2d2600', glow: 'rgba(255,215,0,0.3)' },
-    rouge: { emoji: '🔴', label: 'Rouge', color: '#ff1744', bg: '#2d0a0a', glow: 'rgba(255,23,68,0.35)' },
-    noir: { emoji: '⚫', label: 'Noir', color: '#000000', bg: '#000000;', glow: 'rgba(220,220,220,0.6)' },
+    vert: { emoji: '🟢', label: 'Vert', color: '#00e676', bg: '#0d2d1a', outline: '#00e676', glow: 'rgba(0,230,118,0.3)' },
+    jaune: { emoji: '🟡', label: 'Jaune', color: '#ffd700', bg: '#2d2600',outline: '#ffd700', glow: 'rgba(255,215,0,0.3)' },
+    rouge: { emoji: '🔴', label: 'Rouge', color: '#ff1744', bg: '#2d0a0a',outline: '#ff1744', glow: 'rgba(255,23,68,0.35)' },
+    noir: { emoji: '⚫', label: 'Noir', color: '#000000', bg: '#000000;',outline: '#ffffff', glow: 'rgba(220,220,220,0.6)' },
   };
 
   let _slotData = [];
@@ -134,7 +134,7 @@
       title="${vInfo.label}"
       style="
         background:  ${hasColor ? vInfo.color : 'rgba(255,255,255,0.5)'};
-        outline:     ${isSelected ? `2px solid ${vInfo.color}` : '2px solid transparent'};
+        outline:     ${isSelected ? `2px solid ${vInfo.outline}` : '2px solid transparent'};
         opacity:     ${hasColor ? 1 : 0.2};
         box-shadow:  ${isSelected && hasColor ? `0 0 8px ${vInfo.color}` : 'none'};
       "
