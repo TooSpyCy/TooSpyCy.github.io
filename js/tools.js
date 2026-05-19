@@ -2,30 +2,33 @@
 // TOOLS — Routing SPA
 // ============================================================
 
-const MAINCONTENTDIV = document.getElementById("mainContent");
-
 function setNewHTML(pageName) {
-  MAINCONTENTDIV.innerHTML = `
-    <div class="loading-page">
-      <div class="spinner"></div>
-    </div>`;
+  MAINCONTENTDIV.innerHTML = `<div class="loading-page"><div class="spinner"></div></div>`;
 
-  fetch(`html/${pageName}.html`)
-    .then((r) => {
-      if (!r.ok) throw new Error(`Page "${pageName}" introuvable`);
-      return r.text();
-    })
-    .then((html) => {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Timeout')), 8000)
+  );
+
+  Promise.race([fetch(`html/${pageName}.html`), timeout])
+    .then(r => { if (!r.ok) throw new Error(`Page introuvable`); return r.text(); })
+    .then(html => {
       MAINCONTENTDIV.innerHTML = html;
-      // Réexécute les scripts inline
-      MAINCONTENTDIV.querySelectorAll("script").forEach((old) => {
-        const s = document.createElement("script");
+      MAINCONTENTDIV.querySelectorAll('script').forEach(old => {
+        const s = document.createElement('script');
         s.textContent = `(function(){\n${old.textContent}\n})();`;
         old.parentNode.replaceChild(s, old);
       });
     })
-    .catch((err) => {
-      MAINCONTENTDIV.innerHTML = `<div class="error-page"><p>⚠️ ${err.message}</p></div>`;
+    .catch(err => {
+      MAINCONTENTDIV.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">⚠️</div>
+          <p>Erreur de chargement</p>
+          <small>${err.message}</small>
+          <button class="btn-pink" onclick="setNewHTML('${pageName}')" style="margin-top:12px">
+            Réessayer
+          </button>
+        </div>`;
     });
 }
 

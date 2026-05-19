@@ -11,7 +11,9 @@ let _dessins = null;
 // ── LECTURE ────────────────────────────────────────────────
 async function getDessinMap() {
   if (_dessins) return _dessins;
-  const { data } = await supabaseClient.from('cartedessin').select('*');
+  const { data } = await withTimeout(
+    supabaseClient.from('cartedessin').select('*')
+  );
   _dessins = {};
   (data || []).forEach(d => {
     _dessins[`${d.carte_id}_${d.carteversion_id}`] = d.image_url;
@@ -21,10 +23,9 @@ async function getDessinMap() {
 
 async function getAllCartes() {
   if (_cartes) return _cartes;
-  const { data, error } = await supabaseClient
-    .from('carte')
-    .select('*')
-    .order('scoville');
+  const { data, error } = await withTimeout(
+    supabaseClient.from('carte').select('*').order('scoville')
+  );
   if (error) { console.error(error); return []; }
   _cartes = data || [];
   return _cartes;
@@ -32,10 +33,9 @@ async function getAllCartes() {
 
 async function getAllVersions() {
   if (_versions) return _versions;
-  const { data, error } = await supabaseClient
-    .from('carteversion')
-    .select('*')
-    .order('proba_mult', { ascending: false });
+  const { data, error } = await withTimeout(
+    supabaseClient.from('carteversion').select('*').order('proba_mult', { ascending: false })
+  );
   if (error) { console.error(error); return []; }
   _versions = data || [];
   return _versions;
@@ -43,17 +43,23 @@ async function getAllVersions() {
 
 async function getUserCollection() {
   if (!currentTwitchId) return [];
-  const { data, error } = await supabaseClient
-    .from('collection')
-    .select(`
-      *,
-      carte(*),
-      carteversion(*)
-    `)
-    .eq('twitch_id', Number(currentTwitchId))
-    .order('obtained_at', { ascending: false });
+  const { data, error } = await withTimeout(
+    supabaseClient
+      .from('collection')
+      .select(`*, carte(*), carteversion(*)`)
+      .eq('twitch_id', Number(currentTwitchId))
+      .order('obtained_at', { ascending: false })
+  );
   if (error) { console.error(error); return []; }
   return data || [];
+}
+
+// Helper timeout pour toutes les requêtes Supabase
+function withTimeout(promise, ms = 8000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+  ]);
 }
 
 // ── TIRAGE ─────────────────────────────────────────────────
@@ -101,57 +107,42 @@ async function drawCards(count = 5) {
 
 async function openPack() {
   if (!currentTwitchId || !currentProfile) return null;
-  if (currentProfile.nbrpacks <= 0)        return null;
+  if (currentProfile.nbrpacks <= 0) return null;
 
-  // Décrémente côté serveur (sécurisé, vérifié par la fonction SQL)
-  const { data: ok, error } = await supabaseClient.rpc('open_pack', {
-    p_twitch_id: Number(currentTwitchId),
-  });
+  const { data: ok, error } = await withTimeout(
+    supabaseClient.rpc('open_pack', { p_twitch_id: Number(currentTwitchId) })
+  );
+  if (error || !ok) { console.error('open_pack error:', error); return null; }
 
-  if (error || !ok) {
-    console.error('open_pack error:', error);
-    return null;
-  }
-
-  // Tire 5 cartes
   const drawn = await drawCards(5);
-
-  // Sauvegarde dans la collection
   for (const { carte, version } of drawn) {
     await addToCollection(carte.id, version.id);
   }
-
-  // Met à jour le profil local
   await refreshProfile();
-
   return drawn;
 }
 
 async function addToCollection(carteId, versionId) {
   if (!currentTwitchId) return;
-
-  const { data: existing } = await supabaseClient
-    .from('collection')
-    .select('id, quantity')
-    .eq('twitch_id', Number(currentTwitchId))
-    .eq('carte_id',        carteId)
-    .eq('carteversion_id', versionId)
-    .maybeSingle();
-
+  const { data: existing } = await withTimeout(
+    supabaseClient
+      .from('collection')
+      .select('id, quantity')
+      .eq('twitch_id', Number(currentTwitchId))
+      .eq('carte_id', carteId)
+      .eq('carteversion_id', versionId)
+      .maybeSingle()
+  );
   if (existing) {
-    await supabaseClient
-      .from('collection')
-      .update({ quantity: existing.quantity + 1 })
-      .eq('id', existing.id);
+    await withTimeout(
+      supabaseClient.from('collection').update({ quantity: existing.quantity + 1 }).eq('id', existing.id)
+    );
   } else {
-    await supabaseClient
-      .from('collection')
-      .insert({
-        twitch_id:       Number(currentTwitchId),
-        carte_id:        carteId,
-        carteversion_id: versionId,
-        quantity:        1,
-      });
+    await withTimeout(
+      supabaseClient.from('collection').insert({
+        twitch_id: Number(currentTwitchId), carte_id: carteId, carteversion_id: versionId, quantity: 1,
+      })
+    );
   }
 }
 
