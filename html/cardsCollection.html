@@ -75,9 +75,9 @@
     const hasNoir = collection.some(i => i.carteversion.color === 'noir');
     subtitle.textContent = `${uniqueCartes} / ${allCartes.length} piments découverts`;
 
-    stats.innerHTML = `
-    <span class="stat-pill">${totalCards} carte${totalCards > 1 ? 's' : ''}</span>
-    <span class="stat-pill">${uniqueCartes} / ${allCartes.length} piments</span>`;
+    // stats.innerHTML = `
+    // <span class="stat-pill">${totalCards} carte${totalCards > 1 ? 's' : ''}</span>
+    // <span class="stat-pill">${uniqueCartes} / ${allCartes.length} piments</span>`;
 
     // Construit les données des slots
     _slotData = allCartes.map((carte, i) => {
