@@ -55,17 +55,26 @@ async function getUserCollection() {
 }
 
 // Helper timeout pour toutes les requêtes Supabase
-async function withTimeout(promise, ms = 8000) {
+async function withTimeout(promise, ms = 15000) {
   const timer = new Promise((_, reject) =>
     setTimeout(() => reject(new Error('Timeout')), ms)
   );
   try {
-    return await Promise.race([promise, timer]);
+    const result = await Promise.race([promise, timer]);
+    // Si erreur d'auth → force refresh du token
+    if (result?.error?.status === 401) {
+      await supabaseClient.auth.refreshSession();
+      _cartes   = null;
+      _versions = null;
+      _dessins  = null;
+    }
+    return result;
   } catch (err) {
-    console.warn('Timeout/erreur Supabase:', err.message);
+    console.warn('Timeout/erreur:', err.message);
     return { data: null, error: err };
   }
 }
+
 // ── TIRAGE ─────────────────────────────────────────────────
 
 // Construit toutes les combinaisons (piment × version) avec leur poids
