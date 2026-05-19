@@ -1,25 +1,11 @@
 <!-- OUVERTURE DE PACKS -->
 <style>
-/* ── Pack Opening Styles ─────────────────────────────────── */
 .opening-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 70vh;
-  gap: 24px;
-  position: relative;
-}
-
-/* ── Vue sélection ─────────────────────────────────────── */
-#packSelectorView { width: 100%; }
-
-/* ── Vue ouverture ─────────────────────────────────────── */
-#openingView {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  min-height: 75vh;
   gap: 20px;
 }
 
@@ -29,492 +15,445 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  min-height: 60vh;
+  gap: 20px;
+  min-height: 75vh;
+  width: 100%;
 }
 
 .pack-big {
   position: relative;
   cursor: pointer;
-  width: 220px;
-  height: 300px;
+  width: 240px;
+  height: 330px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
 }
-.pack-big:hover { transform: scale(1.05) translateY(-6px); }
+.pack-big:hover { transform: scale(1.06) translateY(-8px); }
 .pack-big:hover .pack-glow { opacity: 1; }
 
 .pack-glow {
-  position: absolute;
-  inset: -30px;
-  background: radial-gradient(circle, rgba(255,77,141,0.4) 0%, transparent 70%);
+  position: absolute; inset: -40px;
+  background: radial-gradient(circle, rgba(255,77,141,0.5) 0%, transparent 70%);
   border-radius: 50%;
-  opacity: 0.5;
-  transition: opacity 0.3s;
+  opacity: 0.6;
   pointer-events: none;
-  animation: pulseGlow 2s ease-in-out infinite;
+  animation: pulseGlow 2.2s ease-in-out infinite;
 }
 @keyframes pulseGlow {
-  0%,100% { transform: scale(1);   opacity: 0.5; }
-  50%      { transform: scale(1.1); opacity: 0.8; }
-}
-
-.pack-svg-wrap {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 20px 40px rgba(255,77,141,0.4));
+  0%,100% { transform: scale(1);   opacity: 0.55; }
+  50%      { transform: scale(1.15); opacity: 0.85; }
 }
 
 .pack-click-label {
-  font-size: 15px;
-  color: var(--text-sub);
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 15px; color: var(--text-sub); font-weight: 600;
+  letter-spacing: 0.08em;
   animation: blink 2s ease-in-out infinite;
 }
-@keyframes blink {
-  0%,100% { opacity: 1; }
-  50%      { opacity: 0.4; }
-}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-/* ── Animation ouverture pack ───────────────────────────── */
 @keyframes packBurst {
-  0%   { transform: scale(1)    rotate(0deg); opacity: 1; }
-  30%  { transform: scale(1.3)  rotate(-5deg); opacity: 1; }
-  60%  { transform: scale(0.8)  rotate(10deg); opacity: 0.5; }
-  100% { transform: scale(0)    rotate(20deg); opacity: 0; }
+  0%   { transform: scale(1)   rotate(0deg);  opacity: 1; }
+  40%  { transform: scale(1.4) rotate(-8deg); opacity: 1; }
+  100% { transform: scale(0)   rotate(15deg); opacity: 0; }
 }
-.pack-bursting { animation: packBurst 0.6s ease-in forwards; }
+.pack-bursting { animation: packBurst 0.55s ease-in forwards; pointer-events: none; }
 
 /* ── Particules ─────────────────────────────────────────── */
 .particles-container {
   position: fixed; inset: 0;
-  pointer-events: none;
-  z-index: 999;
-  overflow: hidden;
+  pointer-events: none; z-index: 999; overflow: hidden;
 }
 .particle {
   position: absolute;
-  width: 8px; height: 8px;
   border-radius: 50%;
   animation: particleFly 1.2s ease-out forwards;
 }
 @keyframes particleFly {
   0%   { transform: translate(0,0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  100% { transform: translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
 }
 
-/* ── Fan de cartes ──────────────────────────────────────── */
-.cards-fan-wrapper {
+/* ── Stack de cartes ────────────────────────────────────── */
+.card-stack-wrapper {
   position: relative;
-  width: 100%;
-  height: 340px;
+  width: 200px;
+  height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 20px;
 }
 
-.fan-card {
+/* Les cartes "derrière" visibles comme des bords */
+.stack-shadow {
   position: absolute;
-  width: 160px;
-  height: 224px;
+  width: 200px; height: 280px;
+  border-radius: 14px;
+  border: 2px solid rgba(255,77,141,0.2);
+  background: rgba(26,14,42,0.8);
+}
+.stack-shadow:nth-child(1) { transform: translateY(8px)  rotate(2deg);  z-index: 1; opacity: 0.5; }
+.stack-shadow:nth-child(2) { transform: translateY(4px)  rotate(-1deg); z-index: 2; opacity: 0.7; }
+
+/* La carte active (top du stack) */
+.stack-top-card {
+  position: absolute;
+  width: 200px; height: 280px;
+  z-index: 10;
+  perspective: 900px;
   cursor: pointer;
-  transform-origin: center bottom;
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), z-index 0s;
 }
-.fan-card:hover:not(.flipped) {
-  filter: brightness(1.2);
-}
+.stack-top-card:hover:not(.is-flipping) { transform: translateY(-6px) scale(1.03); }
+.stack-top-card { transition: transform 0.2s ease; }
 
-/* Positions en arc — 5 cartes */
-.fan-card[data-pos="0"] { transform: translateX(-280px) rotate(-20deg); z-index: 1; }
-.fan-card[data-pos="1"] { transform: translateX(-140px) rotate(-10deg); z-index: 2; }
-.fan-card[data-pos="2"] { transform: translateX(0px)    rotate(0deg);   z-index: 3; }
-.fan-card[data-pos="3"] { transform: translateX( 140px) rotate(10deg);  z-index: 2; }
-.fan-card[data-pos="4"] { transform: translateX( 280px) rotate(20deg);  z-index: 1; }
-
-/* Quand retournée → revenir à plat et monter */
-.fan-card.flipped[data-pos="0"] { transform: translateX(-280px) translateY(-30px) rotate(-20deg); z-index: 10; }
-.fan-card.flipped[data-pos="1"] { transform: translateX(-140px) translateY(-30px) rotate(-10deg); z-index: 10; }
-.fan-card.flipped[data-pos="2"] { transform: translateX(0px)    translateY(-30px) rotate(0deg);   z-index: 10; }
-.fan-card.flipped[data-pos="3"] { transform: translateX( 140px) translateY(-30px) rotate(10deg);  z-index: 10; }
-.fan-card.flipped[data-pos="4"] { transform: translateX( 280px) translateY(-30px) rotate(20deg);  z-index: 10; }
-
-.fan-card-inner {
+.stack-card-inner {
   position: relative;
   width: 100%; height: 100%;
   transform-style: preserve-3d;
-  transition: transform 0.7s cubic-bezier(0.34,1.56,0.64,1);
-  border-radius: 12px;
+  border-radius: 14px;
 }
-.fan-card.flipped .fan-card-inner { transform: rotateY(180deg); }
+.stack-top-card.is-flipping .stack-card-inner {
+  animation: flipReveal 0.7s cubic-bezier(0.34,1.2,0.64,1) forwards;
+}
+@keyframes flipReveal {
+  0%   { transform: rotateY(0deg)   translateX(0px);   }
+  40%  { transform: rotateY(90deg)  translateX(0px);   }
+  60%  { transform: rotateY(270deg) translateX(0px);   }
+  100% { transform: rotateY(360deg) translateX(600px); opacity: 0; }
+}
 
-.fan-face {
+.stack-face {
   position: absolute; inset: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   overflow: hidden;
 }
 
-/* Dos de carte */
-.fan-front {
+.stack-front {
   background: linear-gradient(135deg, #1a0e2a, #0c0814);
   border: 2px solid var(--pink);
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 10px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,77,141,0.2);
 }
-.fan-front .back-logo  { font-size: 50px; }
-.fan-front .back-label {
+.stack-front .back-logo  { font-size: 56px; }
+.stack-front .back-label {
   font-size: 11px; font-weight: 800;
-  letter-spacing: 0.2em; color: var(--pink-light);
-  text-transform: uppercase;
+  letter-spacing: 0.2em; color: var(--pink-light); text-transform: uppercase;
 }
 
-/* Face de la carte */
-.fan-back {
-  transform: rotateY(180deg);
+/* Cartes révélées en bas ────────────────────────────────── */
+.revealed-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 700px;
+}
+
+.revealed-mini {
+  width: 90px; height: 126px;
+  border-radius: 8px;
   border: 2px solid var(--card-border, #444);
   background: var(--card-bg, #111);
+  overflow: hidden;
   display: flex; flex-direction: column;
-  position: relative;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  animation: slideInBottom 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  box-shadow: 0 0 12px var(--card-glow, transparent);
 }
-.fan-back .pepper-area {
-  flex: 1;
+@keyframes slideInBottom {
+  from { opacity: 0; transform: translateY(30px) scale(0.8); }
+  to   { opacity: 1; transform: none; }
+}
+.revealed-mini .mini-img {
+  flex: 1; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   background: rgba(0,0,0,0.3);
-  padding: 8px; overflow: hidden;
 }
-.fan-back .pepper-area img {
-  width: 100%; height: 100%; object-fit: cover;
-  border-radius: 6px;
-}
-.fan-back .pepper-svg { width: 80%; height: 80%; }
-.fan-back .card-info-reveal {
-  padding: 8px 10px;
+.revealed-mini .mini-img img { width:100%; height:100%; object-fit:cover; }
+.revealed-mini .mini-img .pepper-svg { width:80%; height:80%; }
+.revealed-mini .mini-info {
+  padding: 4px 5px;
   background: rgba(0,0,0,0.7);
-  display: flex; flex-direction: column; gap: 2px;
+  font-size: 9px; line-height: 1.3;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.revealed-mini .mini-name { font-weight: 700; color: var(--text); }
+.revealed-mini .mini-ver  { font-weight: 600; }
+
+/* Glows par couleur sur reveal */
+@keyframes glow-vert  { 0%,100%{box-shadow:0 0 12px rgba(0,230,118,0.4)} 50%{box-shadow:0 0 50px rgba(0,230,118,1)} }
+@keyframes glow-jaune { 0%,100%{box-shadow:0 0 12px rgba(255,215,0,0.4)} 50%{box-shadow:0 0 50px rgba(255,215,0,1)} }
+@keyframes glow-rouge { 0%,100%{box-shadow:0 0 15px rgba(255,23,68,0.4)} 50%{box-shadow:0 0 60px rgba(255,23,68,1)} }
+@keyframes glow-noir  { 0%,100%{box-shadow:0 0 20px rgba(220,220,220,0.3)} 50%{box-shadow:0 0 80px rgba(220,220,220,1)} }
+
+/* Compteur ─────────────────────────────────────────────── */
+.stack-counter {
+  font-size: 13px; color: var(--text-muted); font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
-/* Animations glow selon couleur */
-@keyframes glow-vert  { 0%,100%{box-shadow:0 0 15px rgba(0,230,118,0.4)} 50%{box-shadow:0 0 50px rgba(0,230,118,0.9),0 0 80px rgba(0,230,118,0.4)} }
-@keyframes glow-jaune { 0%,100%{box-shadow:0 0 15px rgba(255,215,0,0.4)} 50%{box-shadow:0 0 50px rgba(255,215,0,0.9),0 0 80px rgba(255,215,0,0.4)} }
-@keyframes glow-rouge { 0%,100%{box-shadow:0 0 15px rgba(255,23,68,0.4)} 50%{box-shadow:0 0 60px rgba(255,23,68,1),0 0 100px rgba(255,23,68,0.5)} }
-@keyframes glow-noir  { 0%,100%{box-shadow:0 0 20px rgba(220,220,220,0.4)} 50%{box-shadow:0 0 70px rgba(220,220,220,1),0 0 120px rgba(220,220,220,0.6)} }
-
-.fan-card.flipped.cv-vert  .fan-back { animation: glow-vert  1s 0.7s ease; }
-.fan-card.flipped.cv-jaune .fan-back { animation: glow-jaune 1s 0.7s ease; }
-.fan-card.flipped.cv-rouge .fan-back { animation: glow-rouge 1.2s 0.7s ease; }
-.fan-card.flipped.cv-noir  .fan-back { animation: glow-noir  1.5s 0.7s ease; }
-
-/* ── Boutons bas ────────────────────────────────────────── */
-.opening-actions {
-  display: flex; gap: 12px;
-  flex-wrap: wrap; justify-content: center;
-  margin-top: 16px;
-}
-
-/* ── Compteur ───────────────────────────────────────────── */
-.reveal-counter {
-  font-size: 14px; color: var(--text-sub); font-weight: 600;
-}
-
-/* ── Animation entrée des cartes ────────────────────────── */
-@keyframes fanEntrance {
-  from { opacity: 0; transform: translateY(60px) scale(0.7) rotate(0deg); }
-  to   { opacity: 1; }
+/* Vide / loading ────────────────────────────────────────── */
+.no-packs-stage {
+  text-align: center; padding: 60px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
 }
 </style>
 
-<!-- ── Vue sélection du pack ────────────────────────────── -->
-<div id="packSelectorView">
-  <div class="page-header">
-    <div>
-      <div class="page-title">📦 Ouvrir des Packs</div>
-      <div class="page-subtitle" id="packSubtitle">Chargement...</div>
-    </div>
-  </div>
-  <div class="pack-selector" id="packList"></div>
+<!-- Vue pack direct -->
+<div id="packStage" class="pack-stage">
+  <div class="loading-cards"><div class="spinner"></div></div>
 </div>
 
-<!-- ── Vue ouverture ─────────────────────────────────────── -->
-<div id="openingView" class="hide">
-  <div class="pack-stage" id="packStage">
-    <!-- Injecté dynamiquement -->
-  </div>
-</div>
-
-<!-- Conteneur de particules -->
+<!-- Particules -->
 <div class="particles-container" id="particlesContainer"></div>
 
 <script>
 const RARITY_ORDER = { vert: 0, jaune: 1, rouge: 2, noir: 3 };
-let _revealedCount = 0;
-let _totalCards    = 0;
-let _drawnCards    = [];
+const V_STYLES = {
+  vert:  { bg:'#0d2d1a', border:'#00e676', glow:'rgba(0,230,118,0.5)',   label:'🟢 Vert'  },
+  jaune: { bg:'#2d2600', border:'#ffd700', glow:'rgba(255,215,0,0.5)',   label:'🟡 Jaune' },
+  rouge: { bg:'#2d0a0a', border:'#ff1744', glow:'rgba(255,23,68,0.6)',   label:'🔴 Rouge' },
+  noir:  { bg:'#0a0a12', border:'#e0e0e0', glow:'rgba(220,220,220,0.7)', label:'⚫ Noir'  },
+};
 
-(async function () { await loadView(); })();
+let _sortedCards  = [];
+let _currentIndex = 0;
+let _revealed     = [];
+let _isFlipping   = false;
+let _drawnPromise = null;
 
-async function loadView() {
-  const listEl     = document.getElementById('packList');
-  const subtitleEl = document.getElementById('packSubtitle');
-
-  if (!currentTwitchId) {
-    listEl.innerHTML = `
-      <div class="not-logged">
-        <div class="icon">🔒</div>
-        <p>Connecte-toi avec Twitch pour ouvrir des packs !</p>
-      </div>`;
-    subtitleEl.textContent = '';
-    return;
-  }
-
+(async function () {
   const count = currentProfile?.nbrpacks || 0;
-  subtitleEl.textContent = `Tu as ${count} pack${count > 1 ? 's' : ''} à ouvrir`;
-
-  if (count <= 0) {
-    listEl.innerHTML = `
-      <div class="empty-state">
-        <div class="icon">📭</div>
-        <p>Aucun pack disponible.</p>
-        <small>Les packs s'obtiennent via les points de chaîne Twitch !</small>
-      </div>`;
+  if (!currentTwitchId || count <= 0) {
+    showNoPacks(count);
     return;
   }
+  // Lance le tirage immédiatement en arrière-plan
+  _drawnPromise = openPack();
+  showBigPack(count);
+})();
 
-  listEl.innerHTML = `
-    <div class="pack-card" onclick="startOpening()">
-      <div class="pack-emoji">📦</div>
-      <div class="pack-info">
-        <span class="pack-name">Pack Spycy</span>
-        <span class="pack-desc">5 cartes aléatoires — piments × couleurs</span>
-        <span class="pack-meta">30 piments × 4 couleurs · ${count} disponible${count > 1 ? 's' : ''}</span>
-      </div>
-      <span class="pack-cta">Ouvrir →</span>
+function showNoPacks(count) {
+  document.getElementById('packStage').innerHTML = `
+    <div class="no-packs-stage">
+      <div style="font-size:52px">${currentTwitchId ? '📭' : '🔒'}</div>
+      <p style="font-size:15px;color:var(--text-sub)">
+        ${currentTwitchId ? 'Aucun pack disponible.<br><small style="font-size:12px;color:var(--text-muted)">Les packs s\'obtiennent via les points de chaîne Twitch !</small>' : 'Connecte-toi avec Twitch !'}
+      </p>
     </div>`;
 }
 
-async function startOpening() {
-  // Bascule les vues
-  document.getElementById('packSelectorView').classList.add('hide');
-  const openingView = document.getElementById('openingView');
-  openingView.classList.remove('hide');
-
-  // Affiche le gros pack
-  showPackClosed();
-
-  // Lance le tirage en arrière plan
-  _drawnCards = await openPack();
-}
-
-function showPackClosed() {
+function showBigPack(count) {
   document.getElementById('packStage').innerHTML = `
     <div class="pack-big" id="bigPack" onclick="triggerPackOpen()">
       <div class="pack-glow"></div>
-      <div class="pack-svg-wrap">
-        <svg viewBox="0 0 220 300" xmlns="http://www.w3.org/2000/svg" width="220" height="300">
-          <defs>
-            <linearGradient id="packGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   stop-color="#2d0a2e"/>
-              <stop offset="50%"  stop-color="#1a0630"/>
-              <stop offset="100%" stop-color="#0c0814"/>
-            </linearGradient>
-            <linearGradient id="packEdge" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   stop-color="#ff4d8d"/>
-              <stop offset="50%"  stop-color="#b039d4"/>
-              <stop offset="100%" stop-color="#ff4d8d"/>
-            </linearGradient>
-            <filter id="packGlow">
-              <feGaussianBlur stdDeviation="4" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <!-- Corps du pack -->
-          <rect x="8" y="8" width="204" height="284" rx="18" fill="url(#packGrad)" stroke="url(#packEdge)" stroke-width="3"/>
-          <!-- Reflet haut -->
-          <rect x="8" y="8" width="204" height="80" rx="18" fill="rgba(255,255,255,0.04)"/>
-          <!-- Déchirure centrale -->
-          <path d="M8 130 Q55 120 110 135 Q165 150 212 130 L212 170 Q165 185 110 170 Q55 155 8 170 Z"
-                fill="rgba(255,77,141,0.12)" stroke="rgba(255,77,141,0.3)" stroke-width="1"/>
-          <!-- Logo piment -->
-          <text x="110" y="115" text-anchor="middle" font-size="64" filter="url(#packGlow)">🌶️</text>
-          <!-- Titre -->
-          <text x="110" y="175" text-anchor="middle" font-family="'Segoe UI', sans-serif"
-                font-size="18" font-weight="900" fill="#ff80ab" letter-spacing="2">TooSpycy</text>
-          <!-- Sous-titre -->
-          <text x="110" y="198" text-anchor="middle" font-family="'Segoe UI', sans-serif"
-                font-size="11" fill="rgba(255,255,255,0.4)" letter-spacing="1">PACK SPYCY</text>
-          <!-- Coins décoratifs -->
-          <circle cx="30"  cy="30"  r="8" fill="none" stroke="rgba(255,77,141,0.5)" stroke-width="1.5"/>
-          <circle cx="190" cy="30"  r="8" fill="none" stroke="rgba(255,77,141,0.5)" stroke-width="1.5"/>
-          <circle cx="30"  cy="270" r="8" fill="none" stroke="rgba(255,77,141,0.5)" stroke-width="1.5"/>
-          <circle cx="190" cy="270" r="8" fill="none" stroke="rgba(255,77,141,0.5)" stroke-width="1.5"/>
-          <!-- Lignes déco -->
-          <line x1="20" y1="50" x2="200" y2="50" stroke="rgba(255,77,141,0.15)" stroke-width="1"/>
-          <line x1="20" y1="250" x2="200" y2="250" stroke="rgba(255,77,141,0.15)" stroke-width="1"/>
-        </svg>
-      </div>
+      <svg viewBox="0 0 240 330" xmlns="http://www.w3.org/2000/svg" width="240" height="330"
+           style="filter:drop-shadow(0 20px 50px rgba(255,77,141,0.5))">
+        <defs>
+          <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#2d0a2e"/>
+            <stop offset="50%"  stop-color="#1a0630"/>
+            <stop offset="100%" stop-color="#0c0814"/>
+          </linearGradient>
+          <linearGradient id="pe" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#ff4d8d"/>
+            <stop offset="50%"  stop-color="#b039d4"/>
+            <stop offset="100%" stop-color="#ff4d8d"/>
+          </linearGradient>
+          <filter id="gf"><feGaussianBlur stdDeviation="3" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect x="6" y="6" width="228" height="318" rx="20" fill="url(#pg)" stroke="url(#pe)" stroke-width="3.5"/>
+        <rect x="6" y="6" width="228" height="90" rx="20" fill="rgba(255,255,255,0.04)"/>
+        <path d="M6 138 Q60 126 120 142 Q180 158 234 138 L234 182 Q180 198 120 182 Q60 166 6 182 Z"
+              fill="rgba(255,77,141,0.10)" stroke="rgba(255,77,141,0.25)" stroke-width="1"/>
+        <text x="120" y="128" text-anchor="middle" font-size="72" filter="url(#gf)">🌶️</text>
+        <text x="120" y="192" text-anchor="middle" font-family="'Segoe UI',sans-serif"
+              font-size="20" font-weight="900" fill="#ff80ab" letter-spacing="2">TooSpycy</text>
+        <text x="120" y="216" text-anchor="middle" font-family="'Segoe UI',sans-serif"
+              font-size="12" fill="rgba(255,255,255,0.35)" letter-spacing="2">PACK SPYCY</text>
+        <circle cx="32"  cy="32"  r="9" fill="none" stroke="rgba(255,77,141,0.4)" stroke-width="1.5"/>
+        <circle cx="208" cy="32"  r="9" fill="none" stroke="rgba(255,77,141,0.4)" stroke-width="1.5"/>
+        <circle cx="32"  cy="298" r="9" fill="none" stroke="rgba(255,77,141,0.4)" stroke-width="1.5"/>
+        <circle cx="208" cy="298" r="9" fill="none" stroke="rgba(255,77,141,0.4)" stroke-width="1.5"/>
+        <line x1="18" y1="56" x2="222" y2="56" stroke="rgba(255,77,141,0.12)" stroke-width="1"/>
+        <line x1="18" y1="274" x2="222" y2="274" stroke="rgba(255,77,141,0.12)" stroke-width="1"/>
+      </svg>
     </div>
     <div class="pack-click-label">✨ Cliquer pour ouvrir ✨</div>
+    <div style="font-size:12px;color:var(--text-muted)">${count} pack${count>1?'s':''} disponible${count>1?'s':''}</div>
   `;
 }
 
 async function triggerPackOpen() {
-  if (!_drawnCards) {
-    document.getElementById('packStage').innerHTML = `
-      <div class="empty-state"><div class="icon">⚠️</div><p>Erreur lors du tirage.</p></div>`;
-    return;
-  }
-
-  // Attend que le tirage soit prêt
-  if (_drawnCards && _drawnCards.then) {
-    _drawnCards = await _drawnCards;
-  }
-
-  if (!_drawnCards || !_drawnCards.length) {
-    document.getElementById('packStage').innerHTML = `
-      <div class="empty-state"><div class="icon">⚠️</div><p>Erreur ou plus de packs.</p></div>`;
-    return;
-  }
-
-  // Animation burst du pack
   const pack = document.getElementById('bigPack');
+  if (!pack) return;
   pack.style.pointerEvents = 'none';
   pack.classList.add('pack-bursting');
-
   spawnParticles();
 
-  setTimeout(() => showCards(_drawnCards), 600);
+  // Attend que le tirage soit prêt
+  const drawn = await _drawnPromise;
+
+  if (!drawn || !drawn.length) {
+    setTimeout(() => {
+      document.getElementById('packStage').innerHTML = `
+        <div class="no-packs-stage">
+          <div style="font-size:52px">⚠️</div>
+          <p style="color:var(--text-sub)">Erreur lors de l'ouverture.</p>
+          <button class="btn-pink" onclick="setNewHTML('cardsOpening')">Réessayer</button>
+        </div>`;
+    }, 600);
+    return;
+  }
+
+  // Trie du moins rare au plus rare
+  _sortedCards  = [...drawn].sort((a,b) => RARITY_ORDER[a.version.color] - RARITY_ORDER[b.version.color]);
+  _currentIndex = 0;
+  _revealed     = [];
+  _isFlipping   = false;
+
+  const dessinMap = await getDessinMap();
+  // Stocke l'image pour chaque carte
+  _sortedCards = _sortedCards.map(d => ({
+    ...d,
+    image: dessinMap[`${d.carte.id}_${d.version.id}`] || d.carte.image_url || ''
+  }));
+
+  setTimeout(() => showStackView(), 650);
+}
+
+function showStackView() {
+  renderStackView();
+}
+
+function renderStackView() {
+  const remaining = _sortedCards.length - _currentIndex;
+
+  const shadowsHTML = remaining > 1
+    ? `<div class="stack-shadow"></div><div class="stack-shadow"></div>`
+    : remaining === 1 ? `<div class="stack-shadow"></div>` : '';
+
+  const topCard = _sortedCards[_currentIndex];
+
+  const stackHTML = remaining > 0 ? `
+    <div class="card-stack-wrapper">
+      ${shadowsHTML}
+      <div class="stack-top-card" id="stackTopCard" onclick="revealTopCard()">
+        <div class="stack-card-inner">
+          <div class="stack-face stack-front">
+            <div class="back-logo">🌶️</div>
+            <div class="back-label">TooSpycy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stack-counter">${remaining} carte${remaining>1?'s':''} restante${remaining>1?'s':''} — clique pour révéler</div>
+  ` : `
+    <div style="font-size:36px">🎉</div>
+    <div style="font-size:16px;font-weight:700;color:var(--pink-light)">Toutes les cartes révélées !</div>
+    <button class="btn-outline" style="margin-top:8px" onclick="returnToPacks()">← Retour</button>
+  `;
+
+  const revealedHTML = _revealed.length > 0 ? `
+    <div class="revealed-row">
+      ${_revealed.map(d => {
+        const s = V_STYLES[d.version.color];
+        return `
+          <div class="revealed-mini"
+               style="--card-border:${s.border};--card-bg:${d.version.color==='noir'?'#0a0a12':s.bg};--card-glow:${s.glow};
+                      border-color:${s.border};background:${s.bg};box-shadow:0 0 10px ${s.glow};">
+            <div class="mini-img">
+              ${d.image ? `<img src="${d.image}" alt="${d.carte.name}">` : pepperSVG(d.version.color, d.carte.scoville)}
+            </div>
+            <div class="mini-info">
+              <span class="mini-name">${d.carte.name}</span>
+              <span class="mini-ver" style="color:${s.border}">${d.version.emoji} ${d.version.label}</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+  ` : '';
+
+  document.getElementById('packStage').innerHTML = `
+    ${stackHTML}
+    ${revealedHTML}
+  `;
+}
+
+function revealTopCard() {
+  if (_isFlipping) return;
+  const cardEl = document.getElementById('stackTopCard');
+  if (!cardEl) return;
+
+  _isFlipping = true;
+  cardEl.classList.add('is-flipping');
+  cardEl.style.pointerEvents = 'none';
+
+  const card = _sortedCards[_currentIndex];
+  const s    = V_STYLES[card.version.color];
+
+  // Glow flash
+  const glow = document.createElement('div');
+  glow.style.cssText = `
+    position:fixed;inset:0;pointer-events:none;z-index:998;
+    background:radial-gradient(circle at center, ${s.glow} 0%, transparent 60%);
+    animation:fadeOut 0.8s 0.3s forwards;
+  `;
+  const style = document.createElement('style');
+  style.textContent = `@keyframes fadeOut{from{opacity:1}to{opacity:0}}`;
+  document.head.appendChild(style);
+  document.body.appendChild(glow);
+  setTimeout(() => { glow.remove(); style.remove(); }, 1200);
+
+  // Vibration
+  if (navigator.vibrate) {
+    if (card.version.color === 'noir')  navigator.vibrate([80,40,80,40,200]);
+    else if (card.version.color === 'rouge') navigator.vibrate([60,30,100]);
+    else navigator.vibrate(30);
+  }
+
+  setTimeout(() => {
+    _revealed.push(card);
+    _currentIndex++;
+    _isFlipping = false;
+    renderStackView();
+  }, 700);
 }
 
 function spawnParticles() {
   const container = document.getElementById('particlesContainer');
-  const colors = ['#ff4d8d','#ff80ab','#ffd700','#00e676','#b039d4','#ffffff'];
-  const cx = window.innerWidth  / 2;
+  const colors = ['#ff4d8d','#ff80ab','#ffd700','#00e676','#b039d4','#ffffff','#ff1744'];
+  const cx = window.innerWidth / 2;
   const cy = window.innerHeight / 2;
-
-  for (let i = 0; i < 40; i++) {
-    const p = document.createElement('div');
+  for (let i = 0; i < 45; i++) {
+    const p   = document.createElement('div');
     p.className = 'particle';
-    const angle = (Math.random() * 360) * (Math.PI / 180);
-    const dist  = 150 + Math.random() * 300;
+    const ang = Math.random() * Math.PI * 2;
+    const d   = 120 + Math.random() * 320;
     p.style.cssText = `
-      left: ${cx}px; top: ${cy}px;
-      background: ${colors[Math.floor(Math.random() * colors.length)]};
-      width: ${4 + Math.random() * 8}px;
-      height: ${4 + Math.random() * 8}px;
-      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
-      --tx: ${Math.cos(angle) * dist}px;
-      --ty: ${Math.sin(angle) * dist}px;
-      animation-duration: ${0.8 + Math.random() * 0.6}s;
-      animation-delay: ${Math.random() * 0.2}s;
+      left:${cx}px;top:${cy}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;
+      border-radius:${Math.random()>0.4?'50%':'3px'};
+      --tx:${Math.cos(ang)*d}px;--ty:${Math.sin(ang)*d}px;
+      animation-duration:${0.8+Math.random()*0.7}s;
+      animation-delay:${Math.random()*0.15}s;
     `;
     container.appendChild(p);
-    setTimeout(() => p.remove(), 1500);
+    setTimeout(() => p.remove(), 1600);
   }
-}
-
-async function showCards(drawn) {
-  const dessinMap = await getDessinMap();
-
-  // Trie du moins rare au plus rare
-  const sorted = [...drawn].sort((a, b) =>
-    RARITY_ORDER[a.version.color] - RARITY_ORDER[b.version.color]
-  );
-
-  _revealedCount = 0;
-  _totalCards    = sorted.length;
-
-  const vStyles = {
-    vert:  { bg: '#0d2d1a', border: '#00e676' },
-    jaune: { bg: '#2d2600', border: '#ffd700' },
-    rouge: { bg: '#2d0a0a', border: '#ff1744' },
-    noir:  { bg: '#0a0a12', border: '#e0e0e0' },
-  };
-
-  const cardsHTML = sorted.map(({ carte: c, version: v }, i) => {
-    const s     = vStyles[v.color];
-    const image = dessinMap[`${c.id}_${v.id}`] || c.image_url || '';
-    return `
-      <div class="fan-card cv-${v.color}" data-pos="${i}" data-index="${i}"
-           onclick="revealFanCard(this, '${v.color}')"
-           style="animation: fanEntrance 0.5s ${i * 100}ms both;">
-        <div class="fan-card-inner">
-          <div class="fan-face fan-front">
-            <div class="back-logo">🌶️</div>
-            <div class="back-label">TooSpycy</div>
-          </div>
-          <div class="fan-face fan-back"
-               style="border-color:${s.border};background:${s.bg};">
-            <div class="pepper-area">
-              ${image ? `<img src="${image}" alt="${c.name}">` : pepperSVG(v.color, c.scoville)}
-            </div>
-            <div class="card-info-reveal">
-              <span class="card-name">${c.name}</span>
-              <span class="card-version" style="color:${s.border}">${v.emoji} ${v.label}</span>
-              <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} SHU</span>
-            </div>
-            ${v.color === 'noir' ? '<div class="noir-shimmer"></div>' : ''}
-          </div>
-        </div>
-      </div>`;
-  }).join('');
-
-  document.getElementById('packStage').innerHTML = `
-    <div style="text-align:center">
-      <div class="page-title" style="font-size:20px">✨ Clique sur les cartes !</div>
-      <div class="reveal-counter" id="revealCounter">0 / ${_totalCards} révélées</div>
-    </div>
-    <div class="cards-fan-wrapper">${cardsHTML}</div>
-    <div class="opening-actions" id="openingActions">
-      <button class="btn-pink" onclick="revealAllFan()">Tout révéler ✨</button>
-      <button class="btn-outline" onclick="returnToPacks()">← Retour</button>
-    </div>`;
-}
-
-function revealFanCard(el, color) {
-  if (el.classList.contains('flipped')) return;
-  el.classList.add('flipped');
-  _revealedCount++;
-  document.getElementById('revealCounter').textContent =
-    _revealedCount >= _totalCards
-      ? '🎉 Tout révélé !'
-      : `${_revealedCount} / ${_totalCards} révélée${_revealedCount > 1 ? 's' : ''}`;
-
-  if (navigator.vibrate) {
-    if (color === 'noir')  navigator.vibrate([80,40,80,40,200]);
-    else if (color === 'rouge') navigator.vibrate([60,30,100]);
-    else navigator.vibrate(30);
-  }
-}
-
-function revealAllFan() {
-  document.querySelectorAll('.fan-card:not(.flipped)').forEach((card, i) => {
-    setTimeout(() => {
-      const color = [...card.classList].find(c => c.startsWith('cv-'))?.replace('cv-','');
-      revealFanCard(card, color);
-    }, i * 200);
-  });
 }
 
 async function returnToPacks() {
-  _drawnCards = null;
   await refreshProfile();
-  document.getElementById('openingView').classList.add('hide');
-  document.getElementById('packSelectorView').classList.remove('hide');
-  await loadView();
+  setNewHTML('cardsOpening');
 }
 
-window.startOpening   = startOpening;
 window.triggerPackOpen = triggerPackOpen;
-window.revealFanCard  = revealFanCard;
-window.revealAllFan   = revealAllFan;
-window.returnToPacks  = returnToPacks;
+window.revealTopCard   = revealTopCard;
+window.returnToPacks   = returnToPacks;
 </script>
