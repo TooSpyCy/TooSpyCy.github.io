@@ -2,6 +2,8 @@
 // TOOLS — Routing SPA
 // ============================================================
 
+const MAINCONTENTDIV = document.getElementById("mainContent");
+
 function setNewHTML(pageName) {
   MAINCONTENTDIV.innerHTML = `<div class="loading-page"><div class="spinner"></div></div>`;
 
@@ -31,6 +33,7 @@ function setNewHTML(pageName) {
         </div>`;
     });
 }
+
 
 function configureHTMLRoutes(btn) {
   const page = btn.getAttribute("name-page");
