@@ -1,7 +1,5 @@
 // ============================================================
 // CONFIGURATION SUPABASE
-// Remplace les deux valeurs par celles de ton projet
-// Settings > API dans le dashboard Supabase
 // ============================================================
 
 const SUPABASE_URL      = 'https://trayertrmajocnfrengj.supabase.co';

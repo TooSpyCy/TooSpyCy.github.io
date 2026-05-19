@@ -33,7 +33,6 @@
         <th>Piment</th>
         <th>Scoville</th>
         <th>Proba</th>
-        <th style="width:140px">Fréquence</th>
       </tr></thead>
       <tbody>
         ${cartes.map(c => {
@@ -42,11 +41,6 @@
             <td style="font-weight:700">${c.name}</td>
             <td style="color:var(--text-sub)">${c.scoville.toLocaleString('fr-FR')}</td>
             <td><strong>${pct}%</strong></td>
-            <td>
-              <div class="proba-bar-bg">
-                <div class="proba-bar" style="width:${pct}%"></div>
-              </div>
-            </td>
           </tr>`;
         }).join('')}
       </tbody>
