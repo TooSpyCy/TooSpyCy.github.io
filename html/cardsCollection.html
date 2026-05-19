@@ -8,84 +8,99 @@
 
 <div class="filter-bar">
   <button class="filter-chip active" data-filter="all">Toutes</button>
-  <button class="filter-chip cv-vert"  data-filter="vert">🟢 Vert</button>
+  <button class="filter-chip cv-vert" data-filter="vert">🟢 Vert</button>
   <button class="filter-chip cv-jaune" data-filter="jaune">🟡 Jaune</button>
   <button class="filter-chip cv-rouge" data-filter="rouge">🔴 Rouge</button>
-  <button class="filter-chip cv-noir"  data-filter="noir">⚫ Noir</button>
+  <button class="filter-chip cv-noir" data-filter="noir">⚫ Noir</button>
 </div>
 
 <div class="collection-stats" id="collectionStats"></div>
 
 <div class="cards-grid" id="collectionGrid"></div>
 
-<script>
-(async function () {
-  const grid     = document.getElementById('collectionGrid');
-  const stats    = document.getElementById('collectionStats');
-  const subtitle = document.getElementById('collectionSubtitle');
+<!-- MODAL -->
+<div id="cardModal" class="card-modal-overlay hide" onclick="closeModal(event)">
+  <div class="card-modal-inner">
+    <button class="modal-close" onclick="document.getElementById('cardModal').classList.add('hide')">✕</button>
+    <div class="modal-visual" id="modalVisual"></div>
+    <div class="modal-info">
+      <span class="modal-name" id="modalName"></span>
+      <span class="modal-version" id="modalVersion"></span>
+      <span class="modal-scoville" id="modalScoville"></span>
+      <span class="modal-desc" id="modalDesc"></span>
+    </div>
+  </div>
+</div>
 
-  // Filtres
-  document.querySelectorAll('.filter-chip').forEach(btn => {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      const f = this.dataset.filter;
-      document.querySelectorAll('.card-item').forEach(card => {
-        card.style.display = (f === 'all' || card.dataset.color === f) ? '' : 'none';
+<script>
+  (async function () {
+    const grid = document.getElementById('collectionGrid');
+    const stats = document.getElementById('collectionStats');
+    const subtitle = document.getElementById('collectionSubtitle');
+
+    // Filtres
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const f = this.dataset.filter;
+        document.querySelectorAll('.card-item').forEach(card => {
+          card.style.display = (f === 'all' || card.dataset.color === f) ? '' : 'none';
+        });
       });
     });
-  });
 
-  if (!currentTwitchId) {
-    grid.innerHTML = `
+    if (!currentTwitchId) {
+      grid.innerHTML = `
       <div class="not-logged" style="grid-column:1/-1">
         <div class="icon">🔒</div>
         <p>Connecte-toi avec Twitch pour voir ta collection !</p>
       </div>`;
-    return;
-  }
+      return;
+    }
 
-  grid.innerHTML = '<div class="loading-cards" style="grid-column:1/-1"><div class="spinner"></div></div>';
+    grid.innerHTML = '<div class="loading-cards" style="grid-column:1/-1"><div class="spinner"></div></div>';
 
-  const collection = await getUserCollection();
-  const dessinMap  = await getDessinMap();
+    const collection = await getUserCollection();
+    const dessinMap = await getDessinMap();
 
-  if (collection.length === 0) {
-    grid.innerHTML = `
+    if (collection.length === 0) {
+      grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
         <div class="icon">📭</div>
         <p>Ta collection est vide. Ouvre des packs !</p>
       </div>`;
-    return;
-  }
+      return;
+    }
 
-  // Stats
-  const total    = collection.reduce((s, i) => s + i.quantity, 0);
-  const unique   = collection.length;
-  const hasNoir  = collection.some(i => i.carteversion.color === 'noir');
-  subtitle.textContent = `${unique} unique${unique > 1 ? 's' : ''} · ${total} carte${total > 1 ? 's' : ''}`;
+    // Stats
+    const total = collection.reduce((s, i) => s + i.quantity, 0);
+    const unique = collection.length;
+    const hasNoir = collection.some(i => i.carteversion.color === 'noir');
+    subtitle.textContent = `${unique} unique${unique > 1 ? 's' : ''} · ${total} carte${total > 1 ? 's' : ''}`;
 
-  stats.innerHTML = `
+    stats.innerHTML = `
     <span class="stat-pill">${total} carte${total > 1 ? 's' : ''}</span>
     <span class="stat-pill">${unique} / 28 uniques</span>
     ${hasNoir ? `<span class="stat-pill gold">⚫ Version Noire obtenue !</span>` : ''}
   `;
 
-  // Rendu
-  grid.innerHTML = collection.map(item => {
-    const c = item.carte;
-    const v = item.carteversion;
-    const style = {
-      vert:  { bg:'#0d2d1a', border:'#00e676', glow:'rgba(0,230,118,0.3)'   },
-      jaune: { bg:'#2d2600', border:'#ffd700', glow:'rgba(255,215,0,0.3)'   },
-      rouge: { bg:'#2d0a0a', border:'#ff1744', glow:'rgba(255,23,68,0.35)'  },
-      noir:  { bg:'#0d0d14', border:'#9c27b0', glow:'rgba(156,39,176,0.5)'  },
-    }[v.color];
-    const image = dessinMap[`${c.id}_${v.id}`] || c.image_url || '';
+    // Rendu
+    grid.innerHTML = collection.map(item => {
+      const c = item.carte;
+      const v = item.carteversion;
+      const style = {
+        vert: { bg: '#0d2d1a', border: '#00e676', glow: 'rgba(0,230,118,0.3)' },
+        jaune: { bg: '#2d2600', border: '#ffd700', glow: 'rgba(255,215,0,0.3)' },
+        rouge: { bg: '#2d0a0a', border: '#ff1744', glow: 'rgba(255,23,68,0.35)' },
+        noir: { bg: '#0d0d14', border: '#9c27b0', glow: 'rgba(156,39,176,0.5)' },
+      }[v.color];
+      const image = dessinMap[`${c.id}_${v.id}`] || c.image_url || '';
 
-    return `
-      <div class="card-item cv-${v.color}" data-color="${v.color}"
-           style="--card-border:${style.border};--card-glow:${style.glow};--card-bg:${style.bg};">
+      return `
+        <div class="card-item cv-${v.color}" data-color="${v.color}"
+       style="--card-border:${style.border};--card-glow:${style.glow};--card-bg:${style.bg};"
+       onclick="openModal(${JSON.stringify({ name: c.name, version: v.emoji + ' ' + v.label, scoville: c.scoville, description: c.description || '', image, border: style.border, bg: style.bg, glow: style.glow })})">
         <div class="card-inner">
           <div class="card-visual">
             ${image ? `<img src="${image}" alt="${c.name}">` : pepperSVG(v.color, c.scoville)}
@@ -93,14 +108,35 @@
           <div class="card-meta">
             <span class="card-name">${c.name}</span>
             <span class="card-version">${v.emoji} ${v.label}</span>
-            <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} SHU</span>
+            <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} scoville</span>
           </div>
           ${item.quantity > 1 ? `<span class="card-qty">×${item.quantity}</span>` : ''}
           ${v.color === 'noir' ? '<div class="noir-shimmer"></div>' : ''}
         </div>
       </div>`;
-  }).join('');
-})();
+    }).join('');
+  })();
+
+  function openModal(data) {
+    document.getElementById('cardModal').classList.remove('hide');
+    document.getElementById('modalName').textContent = data.name;
+    document.getElementById('modalVersion').textContent = data.version;
+    document.getElementById('modalVersion').style.color = data.border;
+    document.getElementById('modalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' SHU';
+    document.getElementById('modalDesc').textContent = data.description;
+    document.getElementById('modalVisual').innerHTML = data.image
+      ? `<img src="${data.image}" alt="${data.name}">`
+      : pepperSVG('vert', data.scoville);
+    const inner = document.querySelector('.card-modal-inner');
+    inner.style.borderColor = data.border;
+    inner.style.background = data.bg;
+    inner.style.boxShadow = `0 0 60px ${data.glow}`;
+  }
+
+  function closeModal(e) {
+    if (e.target.id === 'cardModal') document.getElementById('cardModal').classList.add('hide');
+  }
+
+  window.openModal = openModal;
+  window.closeModal = closeModal;
 </script>
-
-
