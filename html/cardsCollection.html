@@ -86,7 +86,9 @@
   `;
 
     // Rendu
-    grid.innerHTML = collection.map(item => {
+    const cardsData = [];
+
+    grid.innerHTML = collection.map((item, index) => {
       const c = item.carte;
       const v = item.carteversion;
       const style = {
@@ -97,27 +99,32 @@
       }[v.color];
       const image = dessinMap[`${c.id}_${v.id}`] || c.image_url || '';
 
+      cardsData.push({ name: c.name, version: v.emoji + ' ' + v.label, scoville: c.scoville, description: c.description || '', image, border: style.border, bg: style.bg, glow: style.glow });
+
       return `
-        <div class="card-item cv-${v.color}" data-color="${v.color}"
-       style="--card-border:${style.border};--card-glow:${style.glow};--card-bg:${style.bg};"
-       onclick="openModal(${JSON.stringify({ name: c.name, version: v.emoji + ' ' + v.label, scoville: c.scoville, description: c.description || '', image, border: style.border, bg: style.bg, glow: style.glow })})">
-        <div class="card-inner">
-          <div class="card-visual">
-            ${image ? `<img src="${image}" alt="${c.name}">` : pepperSVG(v.color, c.scoville)}
-          </div>
-          <div class="card-meta">
-            <span class="card-name">${c.name}</span>
-            <span class="card-version">${v.emoji} ${v.label}</span>
-            <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} scoville</span>
-          </div>
-          ${item.quantity > 1 ? `<span class="card-qty">×${item.quantity}</span>` : ''}
-          ${v.color === 'noir' ? '<div class="noir-shimmer"></div>' : ''}
+    <div class="card-item cv-${v.color}" data-color="${v.color}"
+         style="--card-border:${style.border};--card-glow:${style.glow};--card-bg:${style.bg};"
+         onclick="openModal(${index})">
+      <div class="card-inner">
+        <div class="card-visual">
+          ${image ? `<img src="${image}" alt="${c.name}">` : pepperSVG(v.color, c.scoville)}
         </div>
-      </div>`;
+        <div class="card-meta">
+          <span class="card-name">${c.name}</span>
+          <span class="card-version">${v.emoji} ${v.label}</span>
+          <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} scoville</span>
+        </div>
+        ${item.quantity > 1 ? `<span class="card-qty">×${item.quantity}</span>` : ''}
+        ${v.color === 'noir' ? '<div class="noir-shimmer"></div>' : ''}
+      </div>
+    </div>`;
     }).join('');
+
+    window._cardsData = cardsData;
   })();
 
-  function openModal(data) {
+  function openModal(index) {
+    const data = window._cardsData[index];
     document.getElementById('cardModal').classList.remove('hide');
     document.getElementById('modalName').textContent = data.name;
     document.getElementById('modalVersion').textContent = data.version;
