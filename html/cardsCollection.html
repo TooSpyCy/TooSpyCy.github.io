@@ -83,7 +83,7 @@
     _slotData = allCartes.map((carte, i) => {
       const owned = ownedMap[carte.id] || { vert: null, jaune: null, rouge: null, noir: null };
       const hasAny = VERSION_ORDER.some(c => owned[c] !== null);
-      const defaultColor = VERSION_ORDER.find(c => owned[c] !== null) || 'vert';
+      const defaultColor = [...VERSION_ORDER].reverse().find(c => owned[c] !== null) || 'vert';
       return { carte, owned, selectedColor: defaultColor, hasAny };
     });
 
