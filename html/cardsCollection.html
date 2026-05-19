@@ -129,7 +129,7 @@
     document.getElementById('modalName').textContent = data.name;
     document.getElementById('modalVersion').textContent = data.version;
     document.getElementById('modalVersion').style.color = data.border;
-    document.getElementById('modalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' SHU';
+    document.getElementById('modalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' Scoville';
     document.getElementById('modalDesc').textContent = data.description;
     document.getElementById('modalVisual').innerHTML = data.image
       ? `<img src="${data.image}" alt="${data.name}">`
