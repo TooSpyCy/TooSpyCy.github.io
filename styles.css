@@ -307,7 +307,8 @@ body {
 }
 .mainScreenContainer {
   padding: 36px 28px;
-  max-width: 100%;
+  max-width: 1250px;
+  margin: 0 auto;
   min-height: 100%;
 }
 
@@ -462,8 +463,8 @@ body {
   display: flex;
   gap: 12px;
   align-items: stretch;
-  max-width: 1250px;
-  margin: 0 auto;
+  /* max-width: 1250px;
+  margin: 0 auto; */
 }
 
 .stream-video-wrapper {
