@@ -19,7 +19,7 @@
       <span class="modal-name"    id="modalName"></span>
       <span class="modal-version" id="modalVersion"></span>
       <span class="modal-scoville" id="modalScoville"></span>
-      <span class="modal-desc"    id="modalDesc"></span>
+      <!-- <span class="modal-desc"    id="modalDesc"></span> -->
     </div>
   </div>
 </div>
@@ -135,7 +135,7 @@ function renderSlot(slot, i) {
       onclick="selectVersion(${i}, '${color}')"
       title="${vInfo.label}"
       style="
-        background:  ${hasColor ? vInfo.color : 'rgba(255,255,255,0.1)'};
+        background:  ${hasColor ? vInfo.color : 'rgba(255,255,255,0.5)'};
         outline:     ${isSelected ? `2px solid ${vInfo.color}` : '2px solid transparent'};
         opacity:     ${hasColor ? 1 : 0.2};
         box-shadow:  ${isSelected && hasColor ? `0 0 8px ${vInfo.color}` : 'none'};
@@ -168,7 +168,7 @@ function renderSlot(slot, i) {
       </div>
       <div class="slot-info">
         <span class="card-name">${hasAny ? c.name : '???'}</span>
-        <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} SHU</span>
+        <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} Scoville</span>
       </div>
       <div class="slot-ver-btns" onclick="event.stopPropagation()">
         ${btns}
@@ -195,8 +195,8 @@ function handleSlotClick(i) {
   document.getElementById('modalName').textContent      = data.name;
   document.getElementById('modalVersion').textContent   = data.version;
   document.getElementById('modalVersion').style.color   = data.border;
-  document.getElementById('modalScoville').textContent  = data.scoville.toLocaleString('fr-FR') + ' SHU';
-  document.getElementById('modalDesc').textContent      = data.description;
+  document.getElementById('modalScoville').textContent  = data.scoville.toLocaleString('fr-FR') + ' Scoville';
+  // document.getElementById('modalDesc').textContent      = data.description;
   document.getElementById('modalVisual').innerHTML      = data.image
     ? `<img src="${data.image}" alt="${data.name}">`
     : pepperSVG('vert', data.scoville);
