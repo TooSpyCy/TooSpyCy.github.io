@@ -82,6 +82,7 @@ async function startOpening() {
   revealArea.innerHTML = '<div class="loading-cards"><div class="spinner"></div></div>';
 
   const drawn = await openPack();
+  const dessinMap = await getDessinMap();
 
   if (!drawn) {
     revealArea.innerHTML = `<div class="error-page"><p>❌ Erreur ou plus de packs disponibles.</p></div>`;
@@ -102,7 +103,7 @@ async function startOpening() {
 
   revealArea.innerHTML = drawn.map(({ carte: c, version: v }, i) => {
     const s     = vStyles[v.color];
-    const image = c.image_url || '';
+    const image = dessinMap[`${c.id}_${v.id}`] || c.image_url || '';
     return `
       <div class="flip-card cv-${v.color}" onclick="revealCard(this, '${v.color}')"
            style="animation-delay:${i * 80}ms;animation:cardEntrance 0.4s ${i * 80}ms both">

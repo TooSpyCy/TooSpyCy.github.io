@@ -48,6 +48,7 @@
   grid.innerHTML = '<div class="loading-cards" style="grid-column:1/-1"><div class="spinner"></div></div>';
 
   const collection = await getUserCollection();
+  const dessinMap  = await getDessinMap();
 
   if (collection.length === 0) {
     grid.innerHTML = `
@@ -80,7 +81,7 @@
       rouge: { bg:'#2d0a0a', border:'#ff1744', glow:'rgba(255,23,68,0.35)'  },
       noir:  { bg:'#0d0d14', border:'#9c27b0', glow:'rgba(156,39,176,0.5)'  },
     }[v.color];
-    const image = c.image_url || '';
+    const image = dessinMap[`${c.id}_${v.id}`] || c.image_url || '';
 
     return `
       <div class="card-item cv-${v.color}" data-color="${v.color}"

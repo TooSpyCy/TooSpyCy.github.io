@@ -6,8 +6,18 @@
 // Cache en mémoire pour éviter les requêtes répétées
 let _cartes    = null;
 let _versions  = null;
+let _dessins = null;
 
 // ── LECTURE ────────────────────────────────────────────────
+async function getDessinMap() {
+  if (_dessins) return _dessins;
+  const { data } = await supabaseClient.from('cartedessin').select('*');
+  _dessins = {};
+  (data || []).forEach(d => {
+    _dessins[`${d.carte_id}_${d.carteversion_id}`] = d.image_url;
+  });
+  return _dessins;
+}
 
 async function getAllCartes() {
   if (_cartes) return _cartes;
