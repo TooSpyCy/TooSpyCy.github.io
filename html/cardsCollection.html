@@ -27,7 +27,7 @@
       <span class="modal-name" id="modalName"></span>
       <span class="modal-version" id="modalVersion"></span>
       <span class="modal-scoville" id="modalScoville"></span>
-      <span class="modal-desc" id="modalDesc"></span>
+      <!-- <span class="modal-desc" id="modalDesc"></span> -->
     </div>
   </div>
 </div>
@@ -130,7 +130,7 @@
     document.getElementById('modalVersion').textContent = data.version;
     document.getElementById('modalVersion').style.color = data.border;
     document.getElementById('modalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' Scoville';
-    document.getElementById('modalDesc').textContent = data.description;
+    // document.getElementById('modalDesc').textContent = data.description;
     document.getElementById('modalVisual').innerHTML = data.image
       ? `<img src="${data.image}" alt="${data.name}">`
       : pepperSVG('vert', data.scoville);
