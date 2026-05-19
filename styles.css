@@ -584,184 +584,6 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   COLLECTION
-   ══════════════════════════════════════════════════════════════ */
-
-/* Filtres */
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-
-.filter-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  border-radius: 50px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-sub);
-  cursor: pointer;
-  transition: all var(--transition);
-}
-.filter-chip:hover,
-.filter-chip.active {
-  border-color: var(--pink);
-  color: var(--pink-light);
-  background: var(--pink-glass);
-}
-.filter-chip.cv-vert.active {
-  border-color: var(--vert);
-  color: var(--vert);
-  background: rgba(0, 230, 118, 0.1);
-}
-.filter-chip.cv-jaune.active {
-  border-color: var(--jaune);
-  color: var(--jaune);
-  background: rgba(255, 215, 0, 0.1);
-}
-.filter-chip.cv-rouge.active {
-  border-color: var(--rouge);
-  color: var(--rouge);
-  background: rgba(255, 23, 68, 0.1);
-}
-.filter-chip.cv-noir.active {
-  border-color: var(--noir-accent);
-  color: var(--noir-accent);
-  background: rgba(206, 147, 216, 0.1);
-}
-
-/* Stats */
-.collection-stats {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-.stat-pill {
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  border-radius: 50px;
-  padding: 5px 14px;
-  font-size: 12px;
-  color: var(--text-sub);
-}
-.stat-pill.gold {
-  border-color: var(--jaune);
-  color: var(--jaune);
-}
-
-/* Grille */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 14px;
-}
-
-/* Carte individuelle */
-.card-item {
-  border-radius: var(--radius);
-  border: 2px solid var(--card-border, var(--glass-border));
-  background: var(--card-bg, var(--glass));
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all var(--transition);
-  box-shadow: 0 0 0 0 var(--card-glow, transparent);
-}
-.card-item:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 12px 30px var(--card-glow, rgba(0, 0, 0, 0.3));
-}
-.card-inner {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.card-visual {
-  width: 100%;
-  /* aspect-ratio: 3/4; */
-  border-radius: 8px;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.card-visual img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.pepper-svg {
-  width: 80%;
-  height: 80%;
-}
-
-.card-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.card-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-}
-.card-version {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--card-border, var(--text-sub));
-}
-.card-scoville {
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.card-qty {
-  position: absolute;
-  top: 7px;
-  right: 7px;
-  background: var(--pink);
-  color: white;
-  border-radius: 50px;
-  padding: 2px 8px;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-/* Shimmer noir */
-.noir-shimmer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(
-    105deg,
-    transparent 40%,
-    rgba(206, 147, 216, 0.12) 50%,
-    transparent 60%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 3s infinite;
-}
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════
    OUVERTURE DE PACKS
    ══════════════════════════════════════════════════════════════ */
 
@@ -1037,14 +859,99 @@ body {
   margin-top: 1rem;
 }
 
-/* ── Modal carte ────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   COLLECTION — SLOTS
+   ══════════════════════════════════════════════════════════ */
+
+.cards-grid-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+/* Slot individuel */
+.slot-item {
+  border: 2px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius);
+  background: #080810;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+.slot-item:hover {
+  transform: translateY(-4px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* Visuel */
+.slot-visual {
+  width: 100%;
+  /* aspect-ratio: 3/4; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+.slot-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.slot-visual .pepper-svg {
+  width: 75%;
+  height: 75%;
+}
+
+/* Placeholder ??? */
+.slot-unknown {
+  font-size: 40px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.08);
+  user-select: none;
+}
+
+/* Infos texte */
+.slot-info {
+  padding: 8px 10px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* 4 boutons de version */
+.slot-ver-btns {
+  display: flex;
+  gap: 5px;
+  padding: 6px 10px 10px;
+  justify-content: center;
+}
+
+.ver-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.ver-btn:hover {
+  transform: scale(1.3);
+}
+
+/* ── Modal carte ────────────────────────────────────────── */
 .card-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1064,10 +971,10 @@ body {
   border: 2px solid var(--pink);
   border-radius: 20px;
   padding: 24px;
-  width: 500px;
+  width: 300px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes popIn {
@@ -1094,9 +1001,12 @@ body {
   font-size: 14px;
   cursor: pointer;
   transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .modal-visual {
