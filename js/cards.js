@@ -55,13 +55,17 @@ async function getUserCollection() {
 }
 
 // Helper timeout pour toutes les requêtes Supabase
-function withTimeout(promise, ms = 8000) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
-  ]);
+async function withTimeout(promise, ms = 8000) {
+  const timer = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Timeout')), ms)
+  );
+  try {
+    return await Promise.race([promise, timer]);
+  } catch (err) {
+    console.warn('Timeout/erreur Supabase:', err.message);
+    return { data: null, error: err };
+  }
 }
-
 // ── TIRAGE ─────────────────────────────────────────────────
 
 // Construit toutes les combinaisons (piment × version) avec leur poids
