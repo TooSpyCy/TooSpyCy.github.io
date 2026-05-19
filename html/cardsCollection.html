@@ -16,7 +16,7 @@
     <button class="modal-close" onclick="document.getElementById('cardModal').classList.add('hide')">✕</button>
     <div class="modal-visual" id="modalVisual"></div>
     <div class="modal-info">
-      <span class="modal-name"    id="modalName"></span>
+      <span class="modal-name" id="modalName"></span>
       <span class="modal-version" id="modalVersion"></span>
       <span class="modal-scoville" id="modalScoville"></span>
       <!-- <span class="modal-desc"    id="modalDesc"></span> -->
@@ -25,112 +25,112 @@
 </div>
 
 <script>
-const VERSION_ORDER = ['vert', 'jaune', 'rouge', 'noir'];
-const VERSION_INFO  = {
-  vert:  { emoji: '🟢', label: 'Vert',  color: '#00e676', bg: '#0d2d1a', glow: 'rgba(0,230,118,0.3)'  },
-  jaune: { emoji: '🟡', label: 'Jaune', color: '#ffd700', bg: '#2d2600', glow: 'rgba(255,215,0,0.3)'  },
-  rouge: { emoji: '🔴', label: 'Rouge', color: '#ff1744', bg: '#2d0a0a', glow: 'rgba(255,23,68,0.35)' },
-  noir:  { emoji: '⚫', label: 'Noir',  color: '#9c27b0', bg: '#0d0d14', glow: 'rgba(156,39,176,0.5)' },
-};
+  const VERSION_ORDER = ['vert', 'jaune', 'rouge', 'noir'];
+  const VERSION_INFO = {
+    vert: { emoji: '🟢', label: 'Vert', color: '#00e676', bg: '#0d2d1a', glow: 'rgba(0,230,118,0.3)' },
+    jaune: { emoji: '🟡', label: 'Jaune', color: '#ffd700', bg: '#2d2600', glow: 'rgba(255,215,0,0.3)' },
+    rouge: { emoji: '🔴', label: 'Rouge', color: '#ff1744', bg: '#2d0a0a', glow: 'rgba(255,23,68,0.35)' },
+    noir: { emoji: '⚫', label: 'Noir', color: '#9c27b0', bg: '#0d0d14', glow: 'rgba(156,39,176,0.5)' },
+  };
 
-let _slotData  = [];
-let _dessinMap = {};
-let _modalData = [];
+  let _slotData = [];
+  let _dessinMap = {};
+  let _modalData = [];
 
-(async function () {
-  const grid    = document.getElementById('collectionGrid');
-  const stats   = document.getElementById('collectionStats');
-  const subtitle = document.getElementById('collectionSubtitle');
+  (async function () {
+    const grid = document.getElementById('collectionGrid');
+    const stats = document.getElementById('collectionStats');
+    const subtitle = document.getElementById('collectionSubtitle');
 
-  if (!currentTwitchId) {
-    grid.innerHTML = `
+    if (!currentTwitchId) {
+      grid.innerHTML = `
       <div class="not-logged" style="grid-column:1/-1">
         <div class="icon">🔒</div>
         <p>Connecte-toi avec Twitch pour voir ta collection !</p>
       </div>`;
-    return;
-  }
+      return;
+    }
 
-  grid.innerHTML = '<div class="loading-cards" style="grid-column:1/-1"><div class="spinner"></div></div>';
+    grid.innerHTML = '<div class="loading-cards" style="grid-column:1/-1"><div class="spinner"></div></div>';
 
-  const [allCartes, collection, dessinMap] = await Promise.all([
-    getAllCartes(),       // triées par scoville ASC
-    getUserCollection(),
-    getDessinMap(),
-  ]);
+    const [allCartes, collection, dessinMap] = await Promise.all([
+      getAllCartes(),       // triées par scoville ASC
+      getUserCollection(),
+      getDessinMap(),
+    ]);
 
-  _dessinMap = dessinMap;
+    _dessinMap = dessinMap;
 
-  // Map : carte_id → { vert: item|null, jaune: item|null, ... }
-  const ownedMap = {};
-  collection.forEach(item => {
-    const cid = item.carte_id;
-    if (!ownedMap[cid]) ownedMap[cid] = { vert: null, jaune: null, rouge: null, noir: null };
-    ownedMap[cid][item.carteversion.color] = item;
-  });
+    // Map : carte_id → { vert: item|null, jaune: item|null, ... }
+    const ownedMap = {};
+    collection.forEach(item => {
+      const cid = item.carte_id;
+      if (!ownedMap[cid]) ownedMap[cid] = { vert: null, jaune: null, rouge: null, noir: null };
+      ownedMap[cid][item.carteversion.color] = item;
+    });
 
-  // Stats
-  const totalCards   = collection.reduce((s, i) => s + i.quantity, 0);
-  const uniqueCartes = Object.keys(ownedMap).length;
-  const hasNoir      = collection.some(i => i.carteversion.color === 'noir');
-  subtitle.textContent = `${uniqueCartes} / ${allCartes.length} piments découverts`;
+    // Stats
+    const totalCards = collection.reduce((s, i) => s + i.quantity, 0);
+    const uniqueCartes = Object.keys(ownedMap).length;
+    const hasNoir = collection.some(i => i.carteversion.color === 'noir');
+    subtitle.textContent = `${uniqueCartes} / ${allCartes.length} piments découverts`;
 
-  stats.innerHTML = `
+    stats.innerHTML = `
     <span class="stat-pill">${totalCards} carte${totalCards > 1 ? 's' : ''}</span>
     <span class="stat-pill">${uniqueCartes} / ${allCartes.length} piments</span>
     ${hasNoir ? `<span class="stat-pill gold">⚫ Version Noire obtenue !</span>` : ''}
   `;
 
-  // Construit les données des slots
-  _slotData = allCartes.map((carte, i) => {
-    const owned      = ownedMap[carte.id] || { vert: null, jaune: null, rouge: null, noir: null };
-    const hasAny     = VERSION_ORDER.some(c => owned[c] !== null);
-    const defaultColor = VERSION_ORDER.find(c => owned[c] !== null) || 'vert';
-    return { carte, owned, selectedColor: defaultColor, hasAny };
-  });
+    // Construit les données des slots
+    _slotData = allCartes.map((carte, i) => {
+      const owned = ownedMap[carte.id] || { vert: null, jaune: null, rouge: null, noir: null };
+      const hasAny = VERSION_ORDER.some(c => owned[c] !== null);
+      const defaultColor = VERSION_ORDER.find(c => owned[c] !== null) || 'vert';
+      return { carte, owned, selectedColor: defaultColor, hasAny };
+    });
 
-  renderAllSlots();
-})();
+    renderAllSlots();
+  })();
 
-// ── Rendu de tous les slots ─────────────────────────────────
-function renderAllSlots() {
-  const grid = document.getElementById('collectionGrid');
-  _modalData = [];
-  grid.innerHTML = _slotData.map((slot, i) => renderSlot(slot, i)).join('');
-}
+  // ── Rendu de tous les slots ─────────────────────────────────
+  function renderAllSlots() {
+    const grid = document.getElementById('collectionGrid');
+    _modalData = [];
+    grid.innerHTML = _slotData.map((slot, i) => renderSlot(slot, i)).join('');
+  }
 
-// ── Rendu d'un slot ─────────────────────────────────────────
-function renderSlot(slot, i) {
-  const { carte: c, owned, selectedColor, hasAny } = slot;
-  const vi         = VERSION_INFO[selectedColor];
-  const hasSelected = owned[selectedColor] !== null;
-  const item       = owned[selectedColor];
-  const image      = hasSelected
-    ? (_dessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '')
-    : '';
+  // ── Rendu d'un slot ─────────────────────────────────────────
+  function renderSlot(slot, i) {
+    const { carte: c, owned, selectedColor, hasAny } = slot;
+    const vi = VERSION_INFO[selectedColor];
+    const hasSelected = owned[selectedColor] !== null;
+    const item = owned[selectedColor];
+    const image = hasSelected
+      ? (_dessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '')
+      : '';
 
-  // Données pour le modal
-  _modalData[i] = hasSelected ? {
-    name: c.name, version: vi.emoji + ' ' + vi.label,
-    scoville: c.scoville, description: c.description || '',
-    image, border: vi.color, bg: vi.bg, glow: vi.glow,
-  } : null;
+    // Données pour le modal
+    _modalData[i] = hasSelected ? {
+      name: c.name, version: vi.emoji + ' ' + vi.label,
+      scoville: c.scoville, description: c.description || '',
+      image, border: vi.color, bg: vi.bg, glow: vi.glow,
+    } : null;
 
-  // Style du slot
-  const borderColor = !hasAny       ? 'rgba(255,255,255,0.07)'
-                    : !hasSelected  ? 'rgba(255,255,255,0.15)'
-                    :                  vi.color;
-  const bgColor     = !hasAny      ? '#080810'
-                    : !hasSelected ? '#0f0f18'
-                    :                 vi.bg;
-  const glowStyle   = hasSelected  ? `box-shadow:0 0 18px ${vi.glow}` : '';
+    // Style du slot
+    const borderColor = !hasAny ? 'rgba(255,255,255,0.07)'
+      : !hasSelected ? 'rgba(255,255,255,0.15)'
+        : vi.color;
+    const bgColor = !hasAny ? '#080810'
+      : !hasSelected ? '#0f0f18'
+        : vi.bg;
+    const glowStyle = hasSelected ? `box-shadow:0 0 18px ${vi.glow}` : '';
 
-  // 4 boutons de version
-  const btns = VERSION_ORDER.map(color => {
-    const vInfo      = VERSION_INFO[color];
-    const hasColor   = owned[color] !== null;
-    const isSelected = color === selectedColor;
-    return `<button
+    // 4 boutons de version
+    const btns = VERSION_ORDER.map(color => {
+      const vInfo = VERSION_INFO[color];
+      const hasColor = owned[color] !== null;
+      const isSelected = color === selectedColor;
+      return `<button
       class="ver-btn"
       onclick="selectVersion(${i}, '${color}')"
       title="${vInfo.label}"
@@ -141,24 +141,21 @@ function renderSlot(slot, i) {
         box-shadow:  ${isSelected && hasColor ? `0 0 8px ${vInfo.color}` : 'none'};
       "
     ></button>`;
-  }).join('');
+    }).join('');
 
-  // Visuel principal
-  let visual = '';
-  if (!hasAny) {
-    visual = `<div class="slot-unknown">?</div>`;
-  } else if (hasSelected && image) {
-    visual = `<img src="${image}" alt="${c.name}" style="opacity:1">`;
-  } else if (hasSelected) {
-    visual = pepperSVG(selectedColor, c.scoville);
-  } else {
-    // On a le piment mais pas cette couleur — affiche en grisé
-    visual = `<div style="opacity:0.25">${pepperSVG('vert', c.scoville)}</div>`;
-  }
+    // Visuel principal
+    let visual = '';
+    if (hasSelected && image) {
+      visual = `<img src="${image}" alt="${c.name}">`;
+    } else if (hasSelected) {
+      visual = pepperSVG(selectedColor, c.scoville);
+    } else {
+      visual = `<div class="slot-unknown">?</div>`;
+    }
 
-  const qty = hasSelected && item.quantity > 1 ? `<span class="card-qty">×${item.quantity}</span>` : '';
+    const qty = hasSelected && item.quantity > 1 ? `<span class="card-qty">×${item.quantity}</span>` : '';
 
-  return `
+    return `
     <div class="slot-item" id="slot-${i}"
          style="border-color:${borderColor};background:${bgColor};${glowStyle}"
          onclick="handleSlotClick(${i})">
@@ -175,44 +172,44 @@ function renderSlot(slot, i) {
       </div>
       ${selectedColor === 'noir' && hasSelected ? '<div class="noir-shimmer"></div>' : ''}
     </div>`;
-}
+  }
 
-// ── Sélectionne une version pour un slot ───────────────────
-function selectVersion(i, color) {
-  _slotData[i].selectedColor = color;
-  const el  = document.getElementById(`slot-${i}`);
-  const tmp = document.createElement('div');
-  tmp.innerHTML = renderSlot(_slotData[i], i);
-  el.replaceWith(tmp.firstElementChild);
-}
+  // ── Sélectionne une version pour un slot ───────────────────
+  function selectVersion(i, color) {
+    _slotData[i].selectedColor = color;
+    const el = document.getElementById(`slot-${i}`);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderSlot(_slotData[i], i);
+    el.replaceWith(tmp.firstElementChild);
+  }
 
-// ── Clic sur le slot → ouvre le modal ──────────────────────
-function handleSlotClick(i) {
-  const data = _modalData[i];
-  if (!data) return;
+  // ── Clic sur le slot → ouvre le modal ──────────────────────
+  function handleSlotClick(i) {
+    const data = _modalData[i];
+    if (!data) return;
 
-  document.getElementById('cardModal').classList.remove('hide');
-  document.getElementById('modalName').textContent      = data.name;
-  document.getElementById('modalVersion').textContent   = data.version;
-  document.getElementById('modalVersion').style.color   = data.border;
-  document.getElementById('modalScoville').textContent  = data.scoville.toLocaleString('fr-FR') + ' Scoville';
-  // document.getElementById('modalDesc').textContent      = data.description;
-  document.getElementById('modalVisual').innerHTML      = data.image
-    ? `<img src="${data.image}" alt="${data.name}">`
-    : pepperSVG('vert', data.scoville);
+    document.getElementById('cardModal').classList.remove('hide');
+    document.getElementById('modalName').textContent = data.name;
+    document.getElementById('modalVersion').textContent = data.version;
+    document.getElementById('modalVersion').style.color = data.border;
+    document.getElementById('modalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' Scoville';
+    // document.getElementById('modalDesc').textContent      = data.description;
+    document.getElementById('modalVisual').innerHTML = data.image
+      ? `<img src="${data.image}" alt="${data.name}">`
+      : pepperSVG('vert', data.scoville);
 
-  const inner = document.querySelector('.card-modal-inner');
-  inner.style.borderColor = data.border;
-  inner.style.background  = data.bg;
-  inner.style.boxShadow   = `0 0 60px ${data.glow}`;
-}
+    const inner = document.querySelector('.card-modal-inner');
+    inner.style.borderColor = data.border;
+    inner.style.background = data.bg;
+    inner.style.boxShadow = `0 0 60px ${data.glow}`;
+  }
 
-function closeModal(e) {
-  if (e.target.id === 'cardModal')
-    document.getElementById('cardModal').classList.add('hide');
-}
+  function closeModal(e) {
+    if (e.target.id === 'cardModal')
+      document.getElementById('cardModal').classList.add('hide');
+  }
 
-window.selectVersion   = selectVersion;
-window.handleSlotClick = handleSlotClick;
-window.closeModal      = closeModal;
+  window.selectVersion = selectVersion;
+  window.handleSlotClick = handleSlotClick;
+  window.closeModal = closeModal;
 </script>
