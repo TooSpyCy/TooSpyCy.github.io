@@ -135,8 +135,8 @@
   /* ── Stack de cartes ────────────────────────────────────── */
   .card-stack-wrapper {
     position: relative;
-    width: 200px;
-    height: 280px;
+    width: 340px;
+    height: 480px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -145,8 +145,8 @@
   /* Les cartes "derrière" visibles comme des bords */
   .stack-shadow {
     position: absolute;
-    width: 200px;
-    height: 280px;
+    width: 100%;
+    height: 100%;
     border-radius: 14px;
     border: 2px solid rgba(255, 77, 141, 0.2);
     background: rgba(26, 14, 42, 0.8);
@@ -167,8 +167,8 @@
   /* La carte active (top du stack) */
   .stack-top-card {
     position: absolute;
-    width: 200px;
-    height: 280px;
+    width: 100%;
+    height: 100%;
     z-index: 10;
     perspective: 900px;
     cursor: pointer;
@@ -351,7 +351,7 @@
 
   /* Compteur ─────────────────────────────────────────────── */
   .stack-counter {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--text-muted);
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -478,18 +478,31 @@
     const topCard = _sortedCards[_currentIndex];
 
     const stackHTML = remaining > 0 ? `
-    <div class="card-stack-wrapper">
-      ${shadowsHTML}
-      <div class="stack-top-card" id="stackTopCard" onclick="revealTopCard()">
-        <div class="stack-card-inner">
-          <div class="stack-face stack-front">
-            <img src="cartes/dos_carte_1.png" alt="dos"
-                style="width:100%;height:100%;object-fit:cover;border-radius:14px;">
+  <div class="card-stack-wrapper">
+    ${shadowsHTML}
+    <div class="stack-top-card" id="stackTopCard" onclick="revealTopCard()">
+      <div class="stack-card-inner">
+        <div class="stack-face stack-front" style="
+          border: 2px solid ${V_STYLES[topCard.version.color].border};
+          background: ${V_STYLES[topCard.version.color].bg};
+          box-shadow: 0 0 20px ${V_STYLES[topCard.version.color].glow};
+          display: flex; flex-direction: column;
+        ">
+          <div style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
+            ${topCard.image
+        ? `<img src="${topCard.image}" alt="${topCard.carte.name}" style="width:100%;height:100%;object-fit:cover;">`
+        : pepperSVG(topCard.version.color, topCard.carte.scoville)}
+          </div>
+          <div style="padding:10px 12px;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;gap:3px;">
+            <span style="font-size:14px;font-weight:800;color:var(--text)">${topCard.carte.name}</span>
+            <span style="font-size:12px;font-weight:700;color:${V_STYLES[topCard.version.color].border}">${topCard.version.emoji} ${topCard.version.label}</span>
+            <span style="font-size:10px;color:var(--text-muted)">${topCard.carte.scoville.toLocaleString('fr-FR')} SHU</span>
           </div>
         </div>
       </div>
     </div>
-    <div class="stack-counter">${remaining} carte${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''} — clique pour révéler</div>
+  </div>
+  <div class="stack-counter">${remaining} carte${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''} — clique pour passer</div>
   ` : `
     <div style="font-size:36px">🎉</div>
     <div style="font-size:16px;font-weight:700;color:var(--pink-light)">Toutes les cartes révélées !</div>
@@ -528,38 +541,26 @@
     if (!cardEl) return;
 
     _isFlipping = true;
-    cardEl.classList.add('is-flipping');
     cardEl.style.pointerEvents = 'none';
 
-    const card = _sortedCards[_currentIndex];
-    const s = V_STYLES[card.version.color];
+    // Animation : glisse vers le haut et disparaît
+    cardEl.style.transition = 'transform 0.45s ease-in, opacity 0.45s ease-in';
+    cardEl.style.transform = 'translateY(-120%) rotate(-8deg)';
+    cardEl.style.opacity = '0';
 
-    // Glow flash
-    const glow = document.createElement('div');
-    glow.style.cssText = `
-    position:fixed;inset:0;pointer-events:none;z-index:998;
-    background:radial-gradient(circle at center, ${s.glow} 0%, transparent 60%);
-    animation:fadeOut 0.8s 0.3s forwards;
-  `;
-    const style = document.createElement('style');
-    style.textContent = `@keyframes fadeOut{from{opacity:1}to{opacity:0}}`;
-    document.head.appendChild(style);
-    document.body.appendChild(glow);
-    setTimeout(() => { glow.remove(); style.remove(); }, 1200);
-
-    // Vibration
     if (navigator.vibrate) {
-      if (card.version.color === 'noir') navigator.vibrate([80, 40, 80, 40, 200]);
-      else if (card.version.color === 'rouge') navigator.vibrate([60, 30, 100]);
+      const color = _sortedCards[_currentIndex].version.color;
+      if (color === 'noir') navigator.vibrate([80, 40, 80, 40, 200]);
+      else if (color === 'rouge') navigator.vibrate([60, 30, 100]);
       else navigator.vibrate(30);
     }
 
     setTimeout(() => {
-      _revealed.push(card);
+      _revealed.push(_sortedCards[_currentIndex]);
       _currentIndex++;
       _isFlipping = false;
       renderStackView();
-    }, 700);
+    }, 450);
   }
 
   function spawnParticles() {
