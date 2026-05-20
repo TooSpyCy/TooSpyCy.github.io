@@ -15,9 +15,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 16px;
     min-height: 92vh;
     width: 100%;
+    padding: 20px 0;
+    /* ← ajoute ce padding */
+    box-sizing: border-box;
+    overflow-y: auto;
+    /* ← permet le scroll si besoin */
   }
 
   .pack-big {
@@ -135,7 +140,8 @@
   /* ── Stack de cartes ────────────────────────────────────── */
   .card-stack-wrapper {
     position: relative;
-    height: min(55vh, 480px);
+    height: min(48vh, 400px);
+    /* ← réduit un peu */
     aspect-ratio: 3 / 4;
     flex-shrink: 0;
   }
@@ -500,7 +506,7 @@
           <div style="padding:10px 12px;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;gap:3px;">
             <span style="font-size:14px;font-weight:800;color:var(--text)">${topCard.carte.name}</span>
             <span style="font-size:12px;font-weight:700;color:${V_STYLES[topCard.version.color].border}">${topCard.version.emoji} ${topCard.version.label}</span>
-            <span style="font-size:10px;color:var(--text-muted)">${topCard.carte.scoville.toLocaleString('fr-FR')} SHU</span>
+            <span style="font-size:10px;color:var(--text-muted)">${topCard.carte.scoville.toLocaleString('fr-FR')} Scoville</span>
           </div>
         </div>
       </div>
