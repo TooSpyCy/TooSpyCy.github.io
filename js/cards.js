@@ -10,24 +10,27 @@ let _dessins = null;
 
 // ── LECTURE ────────────────────────────────────────────────
 async function getDessinMap() {
-  if (_dessins) return _dessins;
+  if (_dessins) { console.log('🖼️ Cache dessins OK'); return _dessins; }
+  console.log('🖼️ Chargement dessins...');
   const { data } = await withTimeout(
     supabaseClient.from('cartedessin').select('*')
   );
+  if (!data) { console.error('❌ getDessinMap échoué'); return {}; }
   _dessins = {};
-  (data || []).forEach(d => {
-    _dessins[`${d.carte_id}_${d.carteversion_id}`] = d.image_url;
-  });
+  data.forEach(d => { _dessins[`${d.carte_id}_${d.carteversion_id}`] = d.image_url; });
+  console.log(`✅ ${data.length} dessins chargés`);
   return _dessins;
 }
 
 async function getAllCartes() {
-  if (_cartes) return _cartes;
+  if (_cartes) { console.log('📦 Cache cartes OK'); return _cartes; }
+  console.log('🌶️ Chargement cartes depuis Supabase...');
   const { data, error } = await withTimeout(
     supabaseClient.from('carte').select('*').order('scoville')
   );
-  if (error) { console.error(error); return []; }
-  _cartes = data || [];
+  if (error || !data) { console.error('❌ getAllCartes échoué'); return []; }
+  console.log(`✅ ${data.length} cartes chargées`);
+  _cartes = data;
   return _cartes;
 }
 
@@ -42,16 +45,17 @@ async function getAllVersions() {
 }
 
 async function getUserCollection() {
-  if (!currentTwitchId) return [];
+  if (!currentTwitchId) { console.warn('⚠️ getUserCollection: pas de twitchId'); return []; }
+  console.log('👤 Chargement collection pour', Number(currentTwitchId));
   const { data, error } = await withTimeout(
-    supabaseClient
-      .from('collection')
+    supabaseClient.from('collection')
       .select(`*, carte(*), carteversion(*)`)
       .eq('twitch_id', Number(currentTwitchId))
       .order('obtained_at', { ascending: false })
   );
-  if (error) { console.error(error); return []; }
-  return data || [];
+  if (error || !data) { console.error('❌ getUserCollection échoué'); return []; }
+  console.log(`✅ ${data.length} cartes en collection`);
+  return data;
 }
 
 // Helper timeout pour toutes les requêtes Supabase
@@ -61,19 +65,21 @@ async function withTimeout(promise, ms = 15000) {
   );
   try {
     const result = await Promise.race([promise, timer]);
-    // Si erreur d'auth → force refresh du token
-    if (result?.error?.status === 401) {
-      await supabaseClient.auth.refreshSession();
-      _cartes   = null;
-      _versions = null;
-      _dessins  = null;
+    if (result?.error) {
+      console.error('❌ Supabase error:', result.error.status, result.error.message, result.error);
+      if (result.error.status === 401) {
+        console.warn('🔑 Token expiré — tentative de refresh...');
+        await supabaseClient.auth.refreshSession();
+        _cartes = null; _versions = null; _dessins = null;
+      }
     }
     return result;
   } catch (err) {
-    console.warn('Timeout/erreur:', err.message);
+    console.error('⏱️ Timeout/erreur réseau:', err.message);
     return { data: null, error: err };
   }
 }
+
 
 // ── TIRAGE ─────────────────────────────────────────────────
 
@@ -119,15 +125,19 @@ async function drawCards(count = 5) {
 // ── OUVERTURE ───────────────────────────────────────────────
 
 async function openPack() {
-  if (!currentTwitchId || !currentProfile) return null;
-  if (currentProfile.nbrpacks <= 0) return null;
+  console.log('📦 Ouverture pack...');
+  if (!currentTwitchId || !currentProfile) { console.warn('⚠️ openPack: pas de profil'); return null; }
+  if (currentProfile.nbrpacks <= 0) { console.warn('⚠️ openPack: 0 packs'); return null; }
 
   const { data: ok, error } = await withTimeout(
     supabaseClient.rpc('open_pack', { p_twitch_id: Number(currentTwitchId) })
   );
-  if (error || !ok) { console.error('open_pack error:', error); return null; }
+  if (error || !ok) { console.error('❌ open_pack RPC échoué', error); return null; }
+  console.log('✅ Pack décrémenté');
 
   const drawn = await drawCards(5);
+  console.log('🎲 Cartes tirées:', drawn.map(d => `${d.carte.name} ${d.version.color}`));
+
   for (const { carte, version } of drawn) {
     await addToCollection(carte.id, version.id);
   }

@@ -53,12 +53,15 @@ async function handleUserLogin(user) {
 
 async function refreshProfile() {
   if (!currentTwitchId) return;
-  const { data } = await supabaseClient
-    .from("users")
-    .select("*")
-    .eq("twitch_id", Number(currentTwitchId))
+  console.log('👤 Refresh profil...');
+  const { data, error } = await supabaseClient
+    .from('users')
+    .select('*')
+    .eq('twitch_id', Number(currentTwitchId))
     .single();
+  if (error) { console.error('❌ refreshProfile échoué:', error); return; }
   currentProfile = data;
+  console.log('✅ Profil:', data);
   updatePackCount();
 }
 
