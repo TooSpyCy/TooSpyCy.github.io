@@ -11,5 +11,13 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 0
+    }
+  },
+  db: {
+    schema: 'public'
   }
 });
