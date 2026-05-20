@@ -1049,8 +1049,8 @@ body {
   font-weight: 700;
 }
 .modal-scoville {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 16px;
+  color: var(--text);
 }
 .modal-desc {
   font-size: 13px;
