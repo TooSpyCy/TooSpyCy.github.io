@@ -135,21 +135,29 @@
   /* ── Stack de cartes ────────────────────────────────────── */
   .card-stack-wrapper {
     position: relative;
-    width: 340px;
-    height: 480px;
+    aspect-ratio: 3 / 4;
+    max-height: 55vh;
+    width: auto;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  /* Les cartes "derrière" visibles comme des bords */
   .stack-shadow {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     border-radius: 14px;
     border: 2px solid rgba(255, 77, 141, 0.2);
     background: rgba(26, 14, 42, 0.8);
+  }
+
+  .stack-top-card {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    perspective: 900px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
   }
 
   .stack-shadow:nth-child(1) {
@@ -164,15 +172,6 @@
     opacity: 0.7;
   }
 
-  /* La carte active (top du stack) */
-  .stack-top-card {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    perspective: 900px;
-    cursor: pointer;
-  }
 
   .stack-top-card:hover:not(.is-flipping) {
     transform: translateY(-6px) scale(1.03);
