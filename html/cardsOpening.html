@@ -252,7 +252,7 @@
     display: flex;
     flex-direction: column;
     animation: slideInBottom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    /* Pas de width/height fixes — géré par le parent */
+    flex-shrink: 0;
   }
 
   @keyframes slideInBottom {
@@ -268,13 +268,15 @@
   }
 
   .revealed-mini .mini-img {
-    flex: 1;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    /* ← ratio seulement sur l'image */
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.3);
-    min-height: 0;
+    flex-shrink: 0;
   }
 
   .revealed-mini .mini-img img {
@@ -530,20 +532,19 @@
   `;
 
     const allRevealed = remaining === 0;
-    const cardH = allRevealed ? 'min(36vh, 280px)' : 'min(18vh, 140px)';
-
+    // const cardH = allRevealed ? 'min(36vh, 280px)' : 'min(18vh, 140px)';
+    const cardW = allRevealed ? 'min(18vw, 200px)' : 'min(10vw, 110px)';
     const revealedHTML = _revealed.length > 0 ? `
   <div class="revealed-row" style="gap:${allRevealed ? '14px' : '8px'};">
     ${_revealed.map(d => {
       const s = V_STYLES[d.version.color];
       return `
         <div class="revealed-mini" style="
-          height:${cardH};
-          aspect-ratio: 23 / 35;
-          border-color:${s.border};
-          background:${s.bg};
-          box-shadow:0 0 ${allRevealed ? '20px' : '8px'} ${s.glow};
-          ${allRevealed ? 'animation:popIn 0.3s ease both;' : ''}
+           width:${cardW};
+  border-color:${s.border};
+  background:${s.bg};
+  box-shadow:0 0 ${allRevealed ? '20px' : '8px'} ${s.glow};
+  ${allRevealed ? 'animation:popIn 0.3s ease both;' : ''}
         ">
           <div class="mini-img">
             ${d.image ? `<img src="${d.image}" alt="${d.carte.name}">` : pepperSVG(d.version.color, d.carte.scoville)}
