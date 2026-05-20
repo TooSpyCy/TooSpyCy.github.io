@@ -533,28 +533,28 @@
     const allRevealed = remaining === 0;
 
     const revealedHTML = _revealed.length > 0 ? `
-  <div class="revealed-row" style="${allRevealed ? 'gap:14px;' : 'gap:10px;'}">
-    ${_revealed.map(d => {
-      const s = V_STYLES[d.version.color];
-      const w = allRevealed ? '150px' : '90px';
-      const h = allRevealed ? '210px' : '126px';
-      return `
-        <div class="revealed-mini"
-             style="width:${w};height:${h};
-                    border-color:${s.border};background:${s.bg};
-                    box-shadow:0 0 ${allRevealed ? '20px' : '10px'} ${s.glow};
-                    ${allRevealed ? 'animation:popIn 0.3s ease both;' : ''}">
-          <div class="mini-img">
-            ${d.image ? `<img src="${d.image}" alt="${d.carte.name}">` : pepperSVG(d.version.color, d.carte.scoville)}
-          </div>
-          <div class="mini-info" style="${allRevealed ? 'padding:8px 10px;' : ''}">
-            <span class="mini-name" style="${allRevealed ? 'font-size:12px;' : ''}">${d.carte.name}</span>
-            <span class="mini-ver" style="color:${s.border};${allRevealed ? 'font-size:11px;' : ''}">${d.version.emoji} ${d.version.label}</span>
-          </div>
-        </div>`;
-    }).join('')}
-  </div>
-` : '';
+    <div class="revealed-row" style="${allRevealed ? 'gap:14px;' : 'gap:10px;'}">
+      ${_revealed.map(d => {
+        const s = V_STYLES[d.version.color];
+        const w = allRevealed ? '225px' : '135px';
+        const h = allRevealed ? '315px' : '189px';
+        return `
+          <div class="revealed-mini"
+              style="width:${w};height:${h};
+                      border-color:${s.border};background:${s.bg};
+                      box-shadow:0 0 ${allRevealed ? '20px' : '10px'} ${s.glow};
+                      ${allRevealed ? 'animation:popIn 0.3s ease both;' : ''}">
+            <div class="mini-img">
+              ${d.image ? `<img src="${d.image}" alt="${d.carte.name}">` : pepperSVG(d.version.color, d.carte.scoville)}
+            </div>
+            <div class="mini-info" style="${allRevealed ? 'padding:8px 10px;' : ''}">
+              <span class="mini-name" style="${allRevealed ? 'font-size:12px;' : ''}">${d.carte.name}</span>
+              <span class="mini-ver" style="color:${s.border};${allRevealed ? 'font-size:11px;' : ''}">${d.version.emoji} ${d.version.label}</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+  ` : '';
 
     document.getElementById('packStage').innerHTML = `
     ${stackHTML}
