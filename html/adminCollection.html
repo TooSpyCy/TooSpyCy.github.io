@@ -12,8 +12,14 @@
     backdrop-filter: blur(10px);
     transition: border-color var(--transition);
   }
-  .search-input:focus { border-color: var(--pink); }
-  .search-input::placeholder { color: var(--text-muted); }
+
+  .search-input:focus {
+    border-color: var(--pink);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-muted);
+  }
 
   .suggestion-chip {
     display: inline-flex;
@@ -30,11 +36,13 @@
     transition: all var(--transition);
     backdrop-filter: blur(10px);
   }
+
   .suggestion-chip:hover {
     border-color: var(--pink);
     color: var(--pink-light);
     background: var(--pink-glass);
   }
+
   .suggestion-chip .chip-packs {
     font-size: 11px;
     color: var(--text-muted);
@@ -51,8 +59,8 @@
 </div>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;max-width:500px;">
-  <input id="adminSearchInput" class="search-input" type="text"
-    placeholder="Pseudo Twitch..." oninput="adminSearchUser(this.value)">
+  <input id="adminSearchInput" class="search-input" type="text" placeholder="Pseudo Twitch..."
+    oninput="adminSearchUser(this.value)">
 </div>
 <div id="adminSuggestions" style="margin-bottom:24px;display:flex;flex-wrap:wrap;gap:8px;"></div>
 
@@ -73,161 +81,167 @@
     <button class="modal-close" onclick="document.getElementById('adminCardModal').classList.add('hide')">✕</button>
     <div class="modal-visual" id="adminModalVisual"></div>
     <div class="modal-info">
-      <span class="modal-name"     id="adminModalName"></span>
-      <span class="modal-version"  id="adminModalVersion"></span>
+      <span class="modal-name" id="adminModalName"></span>
+      <span class="modal-version" id="adminModalVersion"></span>
       <span class="modal-scoville" id="adminModalScoville"></span>
     </div>
   </div>
 </div>
 
 <script>
-// ── Copie exacte de cardsCollection.html ──────────────────────
-// Seuls les noms de variables/fonctions sont préfixés "admin"
-// pour éviter les conflits avec la vraie page collection
+  // ── Copie exacte de cardsCollection.html ──────────────────────
+  // Seuls les noms de variables/fonctions sont préfixés "admin"
+  // pour éviter les conflits avec la vraie page collection
 
-const ADMIN_VERSION_ORDER = ['vert', 'jaune', 'rouge', 'noir'];
-const ADMIN_VERSION_INFO = {
-  vert:  { emoji: '🟢', label: 'Vert',  color: '#00e676', bg: '#0d2d1a', outline: '#00e676', glow: 'rgba(0,230,118,0.3)',   modalBorder: '#00e676' },
-  jaune: { emoji: '🟡', label: 'Jaune', color: '#ffd700', bg: '#2d2600', outline: '#ffd700', glow: 'rgba(255,215,0,0.3)',   modalBorder: '#ffd700' },
-  rouge: { emoji: '🔴', label: 'Rouge', color: '#ff1744', bg: '#2d0a0a', outline: '#ff1744', glow: 'rgba(255,23,68,0.35)',  modalBorder: '#ff1744' },
-  noir:  { emoji: '⚫', label: 'Noir',  color: '#000000', bg: '#0a0a12', outline: '#ffffff', glow: 'rgba(220,220,220,0.6)', modalBorder: '#e0e0e0' },
-};
+  const ADMIN_VERSION_ORDER = ['vert', 'jaune', 'rouge', 'noir'];
+  const ADMIN_VERSION_INFO = {
+    vert: { emoji: '🟢', label: 'Vert', color: '#00e676', bg: '#0d2d1a', outline: '#00e676', glow: 'rgba(0,230,118,0.3)', modalBorder: '#00e676' },
+    jaune: { emoji: '🟡', label: 'Jaune', color: '#ffd700', bg: '#2d2600', outline: '#ffd700', glow: 'rgba(255,215,0,0.3)', modalBorder: '#ffd700' },
+    rouge: { emoji: '🔴', label: 'Rouge', color: '#ff1744', bg: '#2d0a0a', outline: '#ff1744', glow: 'rgba(255,23,68,0.35)', modalBorder: '#ff1744' },
+    noir: { emoji: '⚫', label: 'Noir', color: '#000000', bg: '#0a0a12', outline: '#ffffff', glow: 'rgba(220,220,220,0.6)', modalBorder: '#e0e0e0' },
+  };
 
-let _adminSlotData  = [];
-let _adminDessinMap = {};
-let _adminModalData = [];
-let _allUsers       = null;
-let _searchTimer    = null;
+  let _adminSlotData = [];
+  let _adminDessinMap = {};
+  let _adminModalData = [];
+  let _allUsers = null;
+  let _searchTimer = null;
 
-if (!isAdmin) {
-  document.getElementById('adminCollGrid').innerHTML = `
+  if (!isAdmin) {
+    document.getElementById('adminCollGrid').innerHTML = `
     <div class="not-logged" style="grid-column:1/-1">
       <div class="icon">🚫</div><p>Accès refusé.</p>
     </div>`;
-}
-
-(async function () {
-  if (!isAdmin) return;
-  _allUsers = await sbFetch('users?select=twitch_id,twitch_name,nbrpacks&order=twitch_name.asc');
-})();
-
-// ── Recherche ─────────────────────────────────────────────────
-function adminSearchUser(query) {
-  clearTimeout(_searchTimer);
-  _searchTimer = setTimeout(() => {
-    const q  = query.trim().toLowerCase();
-    const el = document.getElementById('adminSuggestions');
-    if (!q || !_allUsers) { el.innerHTML = ''; return; }
-
-    const matches = _allUsers.filter(u =>
-      u.twitch_name?.toLowerCase().includes(q)
-    ).slice(0, 8);
-
-    el.innerHTML = matches.map(u => `
-      <button class="suggestion-chip"
-        onclick="adminLoadCollection(${u.twitch_id}, '${u.twitch_name}')">
-        ${u.twitch_name}
-        <span class="chip-packs">${u.nbrpacks} pack${u.nbrpacks > 1 ? 's' : ''}</span>
-      </button>
-    `).join('');
-  }, 200);
-}
-
-// ── Charge la collection d'un joueur ─────────────────────────
-async function adminLoadCollection(twitchId, twitchName) {
-  document.getElementById('adminSearchInput').value  = twitchName;
-  document.getElementById('adminSuggestions').innerHTML = '';
-
-  const grid     = document.getElementById('adminCollGrid');
-  const subtitle = document.getElementById('adminCollSubtitle');
-  const header   = document.getElementById('adminCollHeader');
-  const title    = document.getElementById('adminCollTitle');
-
-  header.style.display = 'none';
-  grid.innerHTML = '<div class="loading-cards" style="grid-column:1/-1"><div class="spinner"></div></div>';
-
-  const [allCartes, collection, dessinMap] = await Promise.all([
-    getAllCartes(),
-    sbFetch(`collection?twitch_id=eq.${twitchId}&select=*,carte(*),carteversion(*)&order=obtained_at.desc`),
-    getDessinMap(),
-  ]);
-
-  _adminDessinMap = dessinMap;
-
-  if (!collection) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">⚠️</div><p>Erreur de chargement.</p></div>`;
-    return;
   }
 
-  // Map : carte_id → { vert: item|null, ... } — copie exacte
-  const ownedMap = {};
-  collection.forEach(item => {
-    const cid = item.carte_id;
-    if (!ownedMap[cid]) ownedMap[cid] = { vert: null, jaune: null, rouge: null, noir: null };
-    ownedMap[cid][item.carteversion.color] = item;
-  });
+  (async function () {
+    if (!isAdmin) return;
+    _allUsers = await sbFetch('users?select=twitch_id,twitch_name,nbrpacks&order=twitch_name.asc');
+  })();
 
-  const totalCards   = collection.reduce((s, i) => s + i.quantity, 0);
-  const uniqueCartes = Object.keys(ownedMap).length;
-  const hasNoir      = collection.some(i => i.carteversion.color === 'noir');
+  // ── Recherche ─────────────────────────────────────────────────
+  function adminSearchUser(query) {
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(() => {
+      const q = query.trim().toLowerCase();
+      const el = document.getElementById('adminSuggestions');
+      if (!q || !_allUsers) { el.innerHTML = ''; return; }
 
-  title.textContent    = `Collection de ${twitchName}`;
-  subtitle.textContent = `${uniqueCartes} / ${allCartes.length} piments découverts`;
-  header.style.display = 'flex';
+      const matches = _allUsers.filter(u =>
+        u.twitch_name?.toLowerCase().includes(q)
+      ).slice(0, 8);
 
-  document.getElementById('adminCollStats').innerHTML = `
+      el.innerHTML = matches.map((u, idx) => {
+        window._adminUserCache = window._adminUserCache || {};
+        window._adminUserCache[u.twitch_id] = u;
+        return `
+    <button class="suggestion-chip"
+      onclick="adminLoadCollection(${u.twitch_id}, window._adminUserCache[${u.twitch_id}].twitch_name)">
+      ${u.twitch_name}
+      <span class="chip-packs">${u.nbrpacks} pack${u.nbrpacks > 1 ? 's' : ''}</span>
+    </button>`;
+      }).join('');
+    }, 200);
+  }
+
+  // ── Charge la collection d'un joueur ─────────────────────────
+  async function adminLoadCollection(twitchId, twitchName) {
+    document.getElementById('adminSearchInput').value = twitchName;
+    document.getElementById('adminSuggestions').innerHTML = '';
+
+    const grid = document.getElementById('adminCollGrid');
+    const subtitle = document.getElementById('adminCollSubtitle');
+    const header = document.getElementById('adminCollHeader');
+    const title = document.getElementById('adminCollTitle');
+
+    // Sécurité : si la page a changé entre temps
+    if (!grid || !header) return;
+
+    header.style.display = 'none';
+    grid.innerHTML = '<div class="loading-cards" style="grid-column:1/-1"><div class="spinner"></div></div>';
+
+    const [allCartes, collection, dessinMap] = await Promise.all([
+      getAllCartes(),
+      sbFetch(`collection?twitch_id=eq.${twitchId}&select=*,carte(*),carteversion(*)&order=obtained_at.desc`),
+      getDessinMap(),
+    ]);
+
+    _adminDessinMap = dessinMap;
+
+    if (!collection) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">⚠️</div><p>Erreur de chargement.</p></div>`;
+      return;
+    }
+
+    // Map : carte_id → { vert: item|null, ... } — copie exacte
+    const ownedMap = {};
+    collection.forEach(item => {
+      const cid = item.carte_id;
+      if (!ownedMap[cid]) ownedMap[cid] = { vert: null, jaune: null, rouge: null, noir: null };
+      ownedMap[cid][item.carteversion.color] = item;
+    });
+
+    const totalCards = collection.reduce((s, i) => s + i.quantity, 0);
+    const uniqueCartes = Object.keys(ownedMap).length;
+    const hasNoir = collection.some(i => i.carteversion.color === 'noir');
+
+    title.textContent = `Collection de ${twitchName}`;
+    subtitle.textContent = `${uniqueCartes} / ${allCartes.length} piments découverts`;
+    header.style.display = 'flex';
+
+    document.getElementById('adminCollStats').innerHTML = `
     <span class="stat-pill">${totalCards} carte${totalCards > 1 ? 's' : ''}</span>
     <span class="stat-pill">${uniqueCartes} / ${allCartes.length} piments</span>
   `;
 
-  // Construit les données des slots — copie exacte
-  _adminSlotData = allCartes.map((carte) => {
-    const owned        = ownedMap[carte.id] || { vert: null, jaune: null, rouge: null, noir: null };
-    const hasAny       = ADMIN_VERSION_ORDER.some(c => owned[c] !== null);
-    const defaultColor = [...ADMIN_VERSION_ORDER].reverse().find(c => owned[c] !== null) || 'vert';
-    return { carte, owned, selectedColor: defaultColor, hasAny };
-  });
+    // Construit les données des slots — copie exacte
+    _adminSlotData = allCartes.map((carte) => {
+      const owned = ownedMap[carte.id] || { vert: null, jaune: null, rouge: null, noir: null };
+      const hasAny = ADMIN_VERSION_ORDER.some(c => owned[c] !== null);
+      const defaultColor = [...ADMIN_VERSION_ORDER].reverse().find(c => owned[c] !== null) || 'vert';
+      return { carte, owned, selectedColor: defaultColor, hasAny };
+    });
 
-  adminRenderAllSlots();
-}
+    adminRenderAllSlots();
+  }
 
-// ── Rendu de tous les slots — copie exacte ───────────────────
-function adminRenderAllSlots() {
-  const grid = document.getElementById('adminCollGrid');
-  _adminModalData = [];
-  grid.innerHTML  = _adminSlotData.map((slot, i) => adminRenderSlot(slot, i)).join('');
-}
+  // ── Rendu de tous les slots — copie exacte ───────────────────
+  function adminRenderAllSlots() {
+    const grid = document.getElementById('adminCollGrid');
+    _adminModalData = [];
+    grid.innerHTML = _adminSlotData.map((slot, i) => adminRenderSlot(slot, i)).join('');
+  }
 
-// ── Rendu d'un slot — copie exacte ───────────────────────────
-function adminRenderSlot(slot, i) {
-  const { carte: c, owned, selectedColor, hasAny } = slot;
-  const vi          = ADMIN_VERSION_INFO[selectedColor];
-  const hasSelected = owned[selectedColor] !== null;
-  const item        = owned[selectedColor];
-  const image       = hasSelected
-    ? (_adminDessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '')
-    : '';
+  // ── Rendu d'un slot — copie exacte ───────────────────────────
+  function adminRenderSlot(slot, i) {
+    const { carte: c, owned, selectedColor, hasAny } = slot;
+    const vi = ADMIN_VERSION_INFO[selectedColor];
+    const hasSelected = owned[selectedColor] !== null;
+    const item = owned[selectedColor];
+    const image = hasSelected
+      ? (_adminDessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '')
+      : '';
 
-  _adminModalData[i] = hasSelected ? {
-    name: c.name, version: vi.emoji + ' ' + vi.label,
-    scoville: c.scoville, description: '',
-    image, border: vi.color, modalBorder: vi.modalBorder,
-    bg: vi.bg, glow: vi.glow,
-  } : null;
+    _adminModalData[i] = hasSelected ? {
+      name: c.name, version: vi.emoji + ' ' + vi.label,
+      scoville: c.scoville, description: '',
+      image, border: vi.color, modalBorder: vi.modalBorder,
+      bg: vi.bg, glow: vi.glow,
+    } : null;
 
-  const borderColor = !hasAny       ? 'rgba(255,255,255,0.07)'
-                    : !hasSelected  ? 'rgba(255,255,255,0.15)'
-                    :                  vi.color;
-  const bgColor     = !hasAny      ? '#080810'
-                    : !hasSelected ? '#0f0f18'
-                    :                 vi.bg;
-  const glowStyle   = hasSelected  ? `box-shadow:0 0 18px ${vi.glow}` : '';
+    const borderColor = !hasAny ? 'rgba(255,255,255,0.07)'
+      : !hasSelected ? 'rgba(255,255,255,0.15)'
+        : vi.color;
+    const bgColor = !hasAny ? '#080810'
+      : !hasSelected ? '#0f0f18'
+        : vi.bg;
+    const glowStyle = hasSelected ? `box-shadow:0 0 18px ${vi.glow}` : '';
 
-  const btns = ADMIN_VERSION_ORDER.map(color => {
-    const vInfo      = ADMIN_VERSION_INFO[color];
-    const hasColor   = owned[color] !== null;
-    const isSelected = color === selectedColor;
-    return `<button
+    const btns = ADMIN_VERSION_ORDER.map(color => {
+      const vInfo = ADMIN_VERSION_INFO[color];
+      const hasColor = owned[color] !== null;
+      const isSelected = color === selectedColor;
+      return `<button
       class="ver-btn"
       onclick="adminSelectVersion(${i}, '${color}')"
       title="${vInfo.label}"
@@ -238,22 +252,22 @@ function adminRenderSlot(slot, i) {
         box-shadow:  ${isSelected && hasColor ? `0 0 8px ${vInfo.color}` : 'none'};
       "
     ></button>`;
-  }).join('');
+    }).join('');
 
-  let visual = '';
-  if (hasSelected && image) {
-    visual = `<img src="${image}" alt="${c.name}">`;
-  } else if (hasSelected) {
-    visual = pepperSVG(selectedColor, c.scoville);
-  } else {
-    visual = `<div class="slot-unknown">?</div>`;
-  }
+    let visual = '';
+    if (hasSelected && image) {
+      visual = `<img src="${image}" alt="${c.name}">`;
+    } else if (hasSelected) {
+      visual = pepperSVG(selectedColor, c.scoville);
+    } else {
+      visual = `<div class="slot-unknown">?</div>`;
+    }
 
-  const qty = hasSelected && item.quantity > 1
-    ? `<span class="card-qty" style="position:absolute;right:5%">×${item.quantity}</span>`
-    : '';
+    const qty = hasSelected && item.quantity > 1
+      ? `<span class="card-qty" style="position:absolute;right:5%">×${item.quantity}</span>`
+      : '';
 
-  return `
+    return `
     <div class="slot-item" id="aslot-${i}"
          style="border-color:${borderColor};background:${bgColor};${glowStyle}"
          onclick="adminHandleSlotClick(${i})">
@@ -270,45 +284,45 @@ function adminRenderSlot(slot, i) {
       </div>
       ${selectedColor === 'noir' && hasSelected ? '<div class="noir-shimmer"></div>' : ''}
     </div>`;
-}
+  }
 
-// ── Sélectionne une version — copie exacte ───────────────────
-function adminSelectVersion(i, color) {
-  _adminSlotData[i].selectedColor = color;
-  const el  = document.getElementById(`aslot-${i}`);
-  const tmp = document.createElement('div');
-  tmp.innerHTML = adminRenderSlot(_adminSlotData[i], i);
-  el.replaceWith(tmp.firstElementChild);
-}
+  // ── Sélectionne une version — copie exacte ───────────────────
+  function adminSelectVersion(i, color) {
+    _adminSlotData[i].selectedColor = color;
+    const el = document.getElementById(`aslot-${i}`);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = adminRenderSlot(_adminSlotData[i], i);
+    el.replaceWith(tmp.firstElementChild);
+  }
 
-// ── Clic sur le slot → modal — copie exacte ──────────────────
-function adminHandleSlotClick(i) {
-  const data = _adminModalData[i];
-  if (!data) return;
+  // ── Clic sur le slot → modal — copie exacte ──────────────────
+  function adminHandleSlotClick(i) {
+    const data = _adminModalData[i];
+    if (!data) return;
 
-  document.getElementById('adminCardModal').classList.remove('hide');
-  document.getElementById('adminModalName').textContent     = data.name;
-  document.getElementById('adminModalVersion').textContent  = data.version;
-  document.getElementById('adminModalVersion').style.color  = data.border;
-  document.getElementById('adminModalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' Scoville';
-  document.getElementById('adminModalVisual').innerHTML     = data.image
-    ? `<img src="${data.image}" alt="${data.name}">`
-    : pepperSVG('vert', data.scoville);
+    document.getElementById('adminCardModal').classList.remove('hide');
+    document.getElementById('adminModalName').textContent = data.name;
+    document.getElementById('adminModalVersion').textContent = data.version;
+    document.getElementById('adminModalVersion').style.color = data.border;
+    document.getElementById('adminModalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' Scoville';
+    document.getElementById('adminModalVisual').innerHTML = data.image
+      ? `<img src="${data.image}" alt="${data.name}">`
+      : pepperSVG('vert', data.scoville);
 
-  const inner = document.querySelector('#adminCardModal .card-modal-inner');
-  inner.style.borderColor = data.modalBorder;
-  inner.style.background  = data.bg;
-  inner.style.boxShadow   = `0 0 60px ${data.glow}`;
-}
+    const inner = document.querySelector('#adminCardModal .card-modal-inner');
+    inner.style.borderColor = data.modalBorder;
+    inner.style.background = data.bg;
+    inner.style.boxShadow = `0 0 60px ${data.glow}`;
+  }
 
-function adminCloseModal(e) {
-  if (e.target.id === 'adminCardModal')
-    document.getElementById('adminCardModal').classList.add('hide');
-}
+  function adminCloseModal(e) {
+    if (e.target.id === 'adminCardModal')
+      document.getElementById('adminCardModal').classList.add('hide');
+  }
 
-window.adminSearchUser       = adminSearchUser;
-window.adminLoadCollection   = adminLoadCollection;
-window.adminSelectVersion    = adminSelectVersion;
-window.adminHandleSlotClick  = adminHandleSlotClick;
-window.adminCloseModal       = adminCloseModal;
+  window.adminSearchUser = adminSearchUser;
+  window.adminLoadCollection = adminLoadCollection;
+  window.adminSelectVersion = adminSelectVersion;
+  window.adminHandleSlotClick = adminHandleSlotClick;
+  window.adminCloseModal = adminCloseModal;
 </script>
