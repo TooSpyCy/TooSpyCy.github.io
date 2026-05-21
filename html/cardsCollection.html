@@ -152,7 +152,7 @@
       visual = `<div class="slot-unknown">?</div>`;
     }
 
-    const qty = hasSelected && item.quantity > 1 ? `<span class="card-qty">×${item.quantity}</span>` : '';
+    const qty = hasSelected && item.quantity > 1 ? `<span class="card-qty" style="position:absolute;right:5%">×${item.quantity}</span>` : '';
 
     return `
     <div class="slot-item" id="slot-${i}"
@@ -160,9 +160,9 @@
          onclick="handleSlotClick(${i})">
       <div class="slot-visual">
         ${visual}
-        ${qty}
-      </div>
+        </div>
       <div class="slot-info">
+        ${qty}
         <span class="card-name">${hasAny ? c.name : '???'}</span>
         <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} Scoville</span>
       </div>
