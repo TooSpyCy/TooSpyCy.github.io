@@ -518,7 +518,7 @@
       </div>
     </div>
   </div>
-  <div class="stack-counter">${remaining-1} carte${(remaining-1) > 1 ? 's' : ''} restante${(remaining-1) > 1 ? 's' : ''} — clique pour passer</div>
+  <div class="stack-counter">${remaining - 1} carte${(remaining - 1) > 1 ? 's' : ''} restante${(remaining - 1) > 1 ? 's' : ''} — clique pour passer</div>
   ` : `
     <div style="font-size:20px;font-weight:700;color:var(--pink-light)">Toutes les cartes révélées !</div>
     <button class="btn-outline" style="margin-top:8px" onclick="returnToPacks()">← Retour</button>
@@ -609,9 +609,21 @@
     }
   }
 
-  async function returnToPacks() {
-    await refreshProfile();
-    setNewHTML('cardsOpening');
+  async function refreshProfile() {
+    if (!currentTwitchId) return;
+    console.log('👤 Refresh profil...');
+    try {
+      const data = await sbFetch(
+        `users?twitch_id=eq.${Number(currentTwitchId)}&select=*&limit=1`
+      );
+      if (data?.[0]) {
+        currentProfile = data[0];
+        console.log('✅ Profil:', currentProfile);
+        updatePackCount();
+      }
+    } catch (e) {
+      console.warn('⚠️ refreshProfile échoué:', e.message);
+    }
   }
 
   window.triggerPackOpen = triggerPackOpen;
