@@ -5,10 +5,16 @@
 const MAINCONTENTDIV = document.getElementById("mainContent");
 
 function setNewHTML(pageName) {
+  // Ferme proprement les WebSockets Twitch avant de changer de page
+  MAINCONTENTDIV.querySelectorAll('iframe').forEach(iframe => {
+    iframe.src = 'about:blank'; // coupe la connexion WebSocket
+    iframe.remove();
+  });
+
   MAINCONTENTDIV.innerHTML = `<div class="loading-page"><div class="spinner"></div></div>`;
 
   const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Timeout')), 8000)
+    setTimeout(() => reject(new Error('Timeout')), 15000)
   );
 
   Promise.race([fetch(`html/${pageName}.html`), timeout])
@@ -27,9 +33,7 @@ function setNewHTML(pageName) {
           <div class="icon">⚠️</div>
           <p>Erreur de chargement</p>
           <small>${err.message}</small>
-          <button class="btn-pink" onclick="setNewHTML('${pageName}')" style="margin-top:12px">
-            Réessayer
-          </button>
+          <button class="btn-pink" onclick="setNewHTML('${pageName}')" style="margin-top:12px">Réessayer</button>
         </div>`;
     });
 }
