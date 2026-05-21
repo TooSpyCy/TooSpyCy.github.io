@@ -421,8 +421,6 @@
       showNoPacks(count);
       return;
     }
-    // Lance le tirage immédiatement en arrière-plan
-    _drawnPromise = openPack();
     showBigPack(count);
   })();
 
@@ -454,9 +452,8 @@
     pack.style.pointerEvents = 'none';
     pack.classList.add('pack-bursting');
     spawnParticles();
-
-    // Attend que le tirage soit prêt
-    const drawn = await _drawnPromise;
+    
+    const drawn = await openPack();
 
     if (!drawn || !drawn.length) {
       setTimeout(() => {
@@ -470,20 +467,18 @@
       return;
     }
 
-    // Trie du moins rare au plus rare
     _sortedCards = [...drawn].sort((a, b) => RARITY_ORDER[a.version.color] - RARITY_ORDER[b.version.color]);
     _currentIndex = 0;
     _revealed = [];
     _isFlipping = false;
 
     const dessinMap = await getDessinMap();
-    // Stocke l'image pour chaque carte
     _sortedCards = _sortedCards.map(d => ({
       ...d,
       image: dessinMap[`${d.carte.id}_${d.version.id}`] || d.carte.image_url || ''
     }));
 
-    setTimeout(() => showStackView(), 650);
+    setTimeout(() => renderStackView(), 650);
   }
 
   function showStackView() {
