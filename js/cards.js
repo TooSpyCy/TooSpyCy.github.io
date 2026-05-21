@@ -1,187 +1,124 @@
 // ============================================================
 // CARDS — Logique piments × versions couleur
-// Proba finale = carte.proba × carteversion.proba_mult
+//
+// POURQUOI DES FETCH DIRECTS ?
+// Le client Supabase JS initialise un WebSocket pour le
+// realtime et appelle getSession() de façon synchrone lors
+// des requêtes. Quand l'onglet est mis en arrière-plan puis
+// reprend le focus, le navigateur peut bloquer ce processus
+// indéfiniment (bug reproductible sur Brave ET Chrome).
+//
+// Solution : bypass du client Supabase pour les requêtes data.
+// On utilise fetch() directement avec le token JWT stocké
+// dans _authToken (mis à jour par auth.js via onAuthStateChange).
+// Le fetch() natif ne hang jamais au retour d'onglet.
 // ============================================================
 
-// Cache en mémoire pour éviter les requêtes répétées
-let _cartes    = null;
-let _versions  = null;
-let _dessins = null;
+// ── Cache ────────────────────────────────────────────────────
+let _cartes   = null;
+let _versions = null;
+let _dessins  = null;
 
-// ── LECTURE ────────────────────────────────────────────────
-async function getDessinMap() {
-  if (_dessins) { console.log('🖼️ Cache dessins OK'); return _dessins; }
-  console.log('🖼️ Chargement dessins...');
-  const { data } = await withTimeout(
-    supabaseClient.from('cartedessin').select('*')
-  );
-  if (!data) { console.error('❌ getDessinMap échoué'); return {}; }
-  _dessins = {};
-  data.forEach(d => { _dessins[`${d.carte_id}_${d.carteversion_id}`] = d.image_url; });
-  console.log(`✅ ${data.length} dessins chargés`);
-  return _dessins;
+// ── Helpers fetch directs ─────────────────────────────────────
+
+// _authToken est défini dans auth.js et mis à jour automatiquement
+// via supabaseClient.auth.onAuthStateChange()
+
+async function sbFetch(path, options = {}) {
+  // Utilise le token JWT mis en cache — jamais de getSession() bloquant
+  const token = _authToken || SUPABASE_ANON_KEY;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type':  'application/json',
+      'Accept':        'application/json',
+      ...(options.headers || {}),
+    }
+  });
+
+  if (!res.ok) {
+    console.error('❌ sbFetch:', res.status, res.statusText, path);
+    return null;
+  }
+  return res.json();
 }
+
+async function sbRpc(fnName, params = {}) {
+  const token = _authToken || SUPABASE_ANON_KEY;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+    method: 'POST',
+    headers: {
+      'apikey':        SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type':  'application/json',
+    },
+    body: JSON.stringify(params),
+  });
+
+  if (!res.ok) {
+    console.error('❌ sbRpc:', res.status, res.statusText, fnName);
+    return null;
+  }
+  return res.json();
+}
+
+// ── Lecture ───────────────────────────────────────────────────
 
 async function getAllCartes() {
   if (_cartes) { console.log('📦 Cache cartes OK'); return _cartes; }
-  console.log('🌶️ Chargement cartes depuis Supabase...');
-  const { data, error } = await withTimeout(
-    supabaseClient.from('carte').select('*').order('scoville')
-  );
-  if (error || !data) { console.error('❌ getAllCartes échoué'); return []; }
-  console.log(`✅ ${data.length} cartes chargées`);
+  console.log('🌶️ Chargement cartes...');
+  const data = await sbFetch('carte?select=*&order=scoville.asc');
+  if (!data) { console.error('❌ getAllCartes échoué'); return []; }
   _cartes = data;
+  console.log(`✅ ${data.length} cartes chargées`);
   return _cartes;
 }
 
 async function getAllVersions() {
   if (_versions) return _versions;
-  const { data, error } = await withTimeout(
-    supabaseClient.from('carteversion').select('*').order('proba_mult', { ascending: false })
-  );
-  if (error) { console.error(error); return []; }
-  _versions = data || [];
+  const data = await sbFetch('carteversion?select=*&order=proba_mult.desc');
+  if (!data) return [];
+  _versions = data;
   return _versions;
 }
 
 async function getUserCollection() {
   if (!currentTwitchId) return [];
-  console.log('👤 Chargement collection...');
-
-  // Test 1 : est-ce que la requête part même ?
-  console.log('📡 Envoi requête Supabase...');
-  
-  const query = supabaseClient
-    .from('collection')
-    .select(`*, carte(*), carteversion(*)`)
-    .eq('twitch_id', Number(currentTwitchId))
-    .order('obtained_at', { ascending: false });
-
-  // Timers de diagnostic
-  const t3  = setTimeout(() => console.warn('⏳ 3s — pas de réponse'), 3000);
-  const t8  = setTimeout(() => console.warn('⏳ 8s — toujours rien'), 8000);
-  const t14 = setTimeout(() => console.warn('💀 14s — timeout imminent'), 14000);
-
-  try {
-    const { data, error, status, statusText } = await Promise.race([
-      query,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout 15s')), 15000))
-    ]);
-
-    clearTimeout(t3); clearTimeout(t8); clearTimeout(t14);
-
-    console.log('📥 Réponse reçue — status:', status, statusText);
-
-    if (error) {
-      console.error('❌ Erreur Supabase:', {
-        code:    error.code,
-        message: error.message,
-        details: error.details,
-        hint:    error.hint,
-        status:  error.status,
-      });
-      return [];
-    }
-
-    console.log(`✅ ${data.length} cartes`);
-    return data || [];
-
-  } catch (err) {
-    clearTimeout(t3); clearTimeout(t8); clearTimeout(t14);
-    console.error('💥 Exception attrapée:', err.name, err.message);
-    
-    // Test 2 : est-ce que Brave bloque fetch vers Supabase ?
-    console.log('🧪 Test fetch direct...');
-    try {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/collection?limit=1`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
-      console.log('🧪 Fetch direct OK — status:', r.status);
-    } catch (fetchErr) {
-      console.error('🚫 Fetch direct BLOQUÉ par Brave:', fetchErr.message);
-    }
-    
-    return [];
-  }
-}
-// Helper timeout pour toutes les requêtes Supabase
-async function withTimeout(promise, ms = 15000) {
-  const timer = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Timeout')), ms)
+  console.log('👤 Chargement collection pour', Number(currentTwitchId));
+  const data = await sbFetch(
+    `collection?twitch_id=eq.${Number(currentTwitchId)}&select=*,carte(*),carteversion(*)&order=obtained_at.desc`
   );
-  try {
-    const result = await Promise.race([promise, timer]);
-    if (result?.error) {
-      console.error('❌ Supabase error:', result.error.status, result.error.message, result.error);
-      if (result.error.status === 401) {
-        console.warn('🔑 Token expiré — tentative de refresh...');
-        await supabaseClient.auth.refreshSession();
-        _cartes = null; _versions = null; _dessins = null;
-      }
-    }
-    return result;
-  } catch (err) {
-    console.error('⏱️ Timeout/erreur réseau:', err.message);
-    return { data: null, error: err };
-  }
+  if (!data) { console.error('❌ getUserCollection échoué'); return []; }
+  console.log(`✅ ${data.length} cartes en collection`);
+  return data;
 }
 
-
-// ── TIRAGE ─────────────────────────────────────────────────
-
-// Construit toutes les combinaisons (piment × version) avec leur poids
-async function buildCombinations() {
-  const cartes   = await getAllCartes();
-  const versions = await getAllVersions();
-
-  const combos = [];
-  for (const c of cartes) {
-    for (const v of versions) {
-      combos.push({
-        carte:   c,
-        version: v,
-        weight:  parseFloat(c.proba) * parseFloat(v.proba_mult),
-      });
-    }
-  }
-  return combos;
+async function getDessinMap() {
+  if (_dessins) { console.log('🖼️ Cache dessins OK'); return _dessins; }
+  console.log('🖼️ Chargement dessins...');
+  const data = await sbFetch('cartedessin?select=*');
+  if (!data) { console.error('❌ getDessinMap échoué'); return {}; }
+  _dessins = {};
+  data.forEach(d => {
+    _dessins[`${d.carte_id}_${d.carteversion_id}`] = d.image_url;
+  });
+  console.log(`✅ ${data.length} dessins chargés`);
+  return _dessins;
 }
 
-// Tirage pondéré dans un tableau de {weight, ...}
-function weightedRandom(items) {
-  const total  = items.reduce((s, i) => s + i.weight, 0);
-  let   random = Math.random() * total;
-  for (const item of items) {
-    random -= item.weight;
-    if (random <= 0) return item;
-  }
-  return items[items.length - 1];
-}
-
-// Tire `count` cartes et les retourne
-async function drawCards(count = 5) {
-  const combos = await buildCombinations();
-  const drawn  = [];
-  for (let i = 0; i < count; i++) {
-    drawn.push(weightedRandom(combos));
-  }
-  return drawn;
-}
-
-// ── OUVERTURE ───────────────────────────────────────────────
+// ── Ouverture de pack ─────────────────────────────────────────
 
 async function openPack() {
   console.log('📦 Ouverture pack...');
   if (!currentTwitchId || !currentProfile) { console.warn('⚠️ openPack: pas de profil'); return null; }
-  if (currentProfile.nbrpacks <= 0) { console.warn('⚠️ openPack: 0 packs'); return null; }
+  if (currentProfile.nbrpacks <= 0)        { console.warn('⚠️ openPack: 0 packs');      return null; }
 
-  const { data: ok, error } = await withTimeout(
-    supabaseClient.rpc('open_pack', { p_twitch_id: Number(currentTwitchId) })
-  );
-  if (error || !ok) { console.error('❌ open_pack RPC échoué', error); return null; }
+  const ok = await sbRpc('open_pack', { p_twitch_id: Number(currentTwitchId) });
+  if (ok === null || ok === false) { console.error('❌ open_pack échoué'); return null; }
   console.log('✅ Pack décrémenté');
 
   const drawn = await drawCards(5);
@@ -196,70 +133,71 @@ async function openPack() {
 
 async function addToCollection(carteId, versionId) {
   if (!currentTwitchId) return;
-  const { data: existing } = await withTimeout(
-    supabaseClient
-      .from('collection')
-      .select('id, quantity')
-      .eq('twitch_id', Number(currentTwitchId))
-      .eq('carte_id', carteId)
-      .eq('carteversion_id', versionId)
-      .maybeSingle()
+
+  const existing = await sbFetch(
+    `collection?twitch_id=eq.${Number(currentTwitchId)}&carte_id=eq.${carteId}&carteversion_id=eq.${versionId}&select=id,quantity`
   );
-  if (existing) {
-    await withTimeout(
-      supabaseClient.from('collection').update({ quantity: existing.quantity + 1 }).eq('id', existing.id)
-    );
+  const row = existing?.[0];
+
+  if (row) {
+    await sbFetch(`collection?id=eq.${row.id}`, {
+      method:  'PATCH',
+      body:    JSON.stringify({ quantity: row.quantity + 1 }),
+      headers: { 'Prefer': 'return=minimal' }
+    });
   } else {
-    await withTimeout(
-      supabaseClient.from('collection').insert({
-        twitch_id: Number(currentTwitchId), carte_id: carteId, carteversion_id: versionId, quantity: 1,
-      })
-    );
+    await sbFetch('collection', {
+      method:  'POST',
+      body:    JSON.stringify({
+        twitch_id:       Number(currentTwitchId),
+        carte_id:        carteId,
+        carteversion_id: versionId,
+        quantity:        1,
+      }),
+      headers: { 'Prefer': 'return=minimal' }
+    });
   }
 }
 
-// ── AFFICHAGE ───────────────────────────────────────────────
+// ── Tirage pondéré ────────────────────────────────────────────
 
-const VERSION_STYLES = {
-  vert:  { bg: '#0d2d1a', border: '#00e676', glow: 'rgba(0,230,118,0.3)',   label: '🟢 Vert'  },
-  jaune: { bg: '#2d2600', border: '#ffd700', glow: 'rgba(255,215,0,0.3)',   label: '🟡 Jaune' },
-  rouge: { bg: '#2d0a0a', border: '#ff1744', glow: 'rgba(255,23,68,0.35)',  label: '🔴 Rouge' },
-  noir:  { bg: '#0d0d14', border: '#9c27b0', glow: 'rgba(156,39,176,0.5)',  label: '⚫ Noir'  },
-};
-
-// Renvoie le HTML d'une carte pour la grille collection
-function collectionCardHTML(item) {
-  const c      = item.carte;
-  const v      = item.carteversion;
-  const style  = VERSION_STYLES[v.color] || VERSION_STYLES.vert;
-  const image  = item.cartedessin?.image_url || c.image_url;
-
-  return `
-    <div class="card-item cv-${v.color}"
-         style="--card-border:${style.border};--card-glow:${style.glow};--card-bg:${style.bg};"
-         title="${c.description || c.name}">
-      <div class="card-inner">
-        <div class="card-visual">
-          ${image
-            ? `<img src="${image}" alt="${c.name}">`
-            : pepperSVG(v.color, c.scoville)}
-        </div>
-        <div class="card-meta">
-          <span class="card-name">${c.name}</span>
-          <span class="card-version">${style.label}</span>
-          <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} SHU</span>
-        </div>
-        ${item.quantity > 1
-          ? `<span class="card-qty">×${item.quantity}</span>`
-          : ''}
-        ${v.color === 'noir'
-          ? '<div class="noir-shimmer"></div>'
-          : ''}
-      </div>
-    </div>`;
+async function buildCombinations() {
+  const cartes   = await getAllCartes();
+  const versions = await getAllVersions();
+  const combos   = [];
+  for (const c of cartes) {
+    for (const v of versions) {
+      combos.push({
+        carte:   c,
+        version: v,
+        weight:  parseFloat(c.proba) * parseFloat(v.proba_mult),
+      });
+    }
+  }
+  return combos;
 }
 
-// Génère un SVG piment coloré selon la version
+function weightedRandom(items) {
+  const total  = items.reduce((s, i) => s + i.weight, 0);
+  let   random = Math.random() * total;
+  for (const item of items) {
+    random -= item.weight;
+    if (random <= 0) return item;
+  }
+  return items[items.length - 1];
+}
+
+async function drawCards(count = 5) {
+  const combos = await buildCombinations();
+  const drawn  = [];
+  for (let i = 0; i < count; i++) {
+    drawn.push(weightedRandom(combos));
+  }
+  return drawn;
+}
+
+// ── Affichage ─────────────────────────────────────────────────
+
 function pepperSVG(color, scoville) {
   const colors = {
     vert:  '#00e676',
@@ -268,13 +206,12 @@ function pepperSVG(color, scoville) {
     noir:  '#b39ddb',
   };
   const c = colors[color] || colors.vert;
-  const size = Math.min(3 + scoville / 500000, 8); // taille proportionnelle au scoville
 
   return `
     <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="pepper-svg">
       <defs>
         <radialGradient id="pg-${color}" cx="40%" cy="30%">
-          <stop offset="0%" stop-color="${c}" stop-opacity="0.9"/>
+          <stop offset="0%"   stop-color="${c}" stop-opacity="0.9"/>
           <stop offset="100%" stop-color="${c}" stop-opacity="0.4"/>
         </radialGradient>
         <filter id="glow-${color}">
@@ -282,22 +219,16 @@ function pepperSVG(color, scoville) {
           <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
-      <!-- Tige -->
       <path d="M50 10 Q55 5 60 8 Q58 12 55 15" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round"/>
-      <!-- Corps du piment -->
       <ellipse cx="50" cy="65" rx="22" ry="42" fill="url(#pg-${color})" filter="url(#glow-${color})"/>
-      <!-- Pointe -->
       <path d="M36 100 Q50 118 64 100" fill="url(#pg-${color})"/>
-      <!-- Brillance -->
       <ellipse cx="40" cy="45" rx="7" ry="12" fill="white" opacity="0.2"/>
-      <!-- Flammes si très piquant -->
-      ${scoville > 500000 ? `
-        <text x="50" y="68" text-anchor="middle" font-size="18" opacity="0.6">🔥</text>
-      ` : ''}
+      ${scoville > 500000
+        ? `<text x="50" y="68" text-anchor="middle" font-size="18" opacity="0.6">🔥</text>`
+        : ''}
     </svg>`;
 }
 
-// Probabilité combinée lisible (pour affichage)
 function probabilityLabel(carteProba, versionMult) {
   const pct = (parseFloat(carteProba) * parseFloat(versionMult) * 100).toFixed(2);
   return `${pct}%`;
