@@ -1011,6 +1011,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  display:none;
 }
 .modal-close:hover {
   background: rgba(255, 255, 255, 0.25);
