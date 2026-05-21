@@ -486,7 +486,7 @@
   }
 
   function renderStackView() {
-    const remaining = _sortedCards.length - _currentIndex - 1;
+    const remaining = _sortedCards.length - _currentIndex;
 
     const shadowsHTML = remaining > 1
       ? `<div class="stack-shadow"></div><div class="stack-shadow"></div>`
@@ -519,7 +519,7 @@
       </div>
     </div>
   </div>
-  <div class="stack-counter">${remaining} carte${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''} — clique pour passer</div>
+  <div class="stack-counter">${remaining-1} carte${(remaining-1) > 1 ? 's' : ''} restante${(remaining-1) > 1 ? 's' : ''} — clique pour passer</div>
   ` : `
     <div style="font-size:36px">🎉</div>
     <div style="font-size:16px;font-weight:700;color:var(--pink-light)">Toutes les cartes révélées !</div>
