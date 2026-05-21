@@ -7,95 +7,104 @@
 </div>
 
 <div id="statsContent">
-  <div class="loading-cards"><div class="spinner"></div></div>
+  <div class="loading-cards">
+    <div class="spinner"></div>
+  </div>
 </div>
 
 <script>
-(async function () {
-  if (!isAdmin) {
-    document.getElementById('statsContent').innerHTML = `
+  (async function () {
+    if (!isAdmin) {
+      document.getElementById('statsContent').innerHTML = `
       <div class="empty-state"><div class="icon">🚫</div><p>Accès refusé.</p></div>`;
-    return;
-  }
-
-  // Charge toutes les stats via la vue SQL
-  const [stats, allCollection, allCartes, allVersions, allDessins] = await Promise.all([
-    sbFetch('admin_collection_stats?select=*&order=total_cards.desc'),
-    sbFetch('collection?select=*,carte(*),carteversion(*)'),
-    sbFetch('carte?select=*&order=scoville.asc'),
-    sbFetch('carteversion?select=*'),
-    sbFetch('cartedessin?select=*'),
-  ]);
-
-  if (!stats) {
-    document.getElementById('statsContent').innerHTML = `
-      <div class="empty-state"><div class="icon">⚠️</div><p>Erreur de chargement.</p></div>`;
-    return;
-  }
-
-  const totalUsers = stats.length;
-  const totalCards = stats.reduce((s, u) => s + (u.total_cards || 0), 0);
-  document.getElementById('statsSubtitle').textContent =
-    `${totalUsers} joueurs · ${totalCards} cartes au total`;
-
-  // Dessin map
-  const dessinMap = {};
-  (allDessins || []).forEach(d => {
-    dessinMap[`${d.carte_id}_${d.carteversion_id}`] = d.image_url;
-  });
-
-  // ── Top joueurs ────────────────────────────────────────────
-  const topCards    = [...stats].sort((a,b) => (b.total_cards||0) - (a.total_cards||0))[0];
-  const topUnique   = [...stats].sort((a,b) => (b.total_unique||0) - (a.total_unique||0))[0];
-  const topRarest   = [...stats].filter(u => u.rarest_proba).sort((a,b) => a.rarest_proba - b.rarest_proba)[0];
-
-  // Trouve la carte la plus rare de topRarest
-  let rarestCardHTML = '';
-  if (topRarest && allCollection) {
-    const userColl = allCollection.filter(c => c.twitch_id == topRarest.twitch_id);
-    const rarest   = userColl.sort((a,b) =>
-      (parseFloat(a.carte.proba) * parseFloat(a.carteversion.proba_mult)) -
-      (parseFloat(b.carte.proba) * parseFloat(b.carteversion.proba_mult))
-    )[0];
-
-    if (rarest) {
-      const V_STYLES = {
-        vert:  { bg:'#0d2d1a', border:'#00e676', glow:'rgba(0,230,118,0.5)'  },
-        jaune: { bg:'#2d2600', border:'#ffd700', glow:'rgba(255,215,0,0.5)'  },
-        rouge: { bg:'#2d0a0a', border:'#ff1744', glow:'rgba(255,23,68,0.6)'  },
-        noir:  { bg:'#0a0a12', border:'#e0e0e0', glow:'rgba(220,220,220,0.7)'},
-      };
-      const s     = V_STYLES[rarest.carteversion.color];
-      const image = dessinMap[`${rarest.carte_id}_${rarest.carteversion_id}`] || rarest.carte.image_url || '';
-      const pct   = (parseFloat(rarest.carte.proba) * parseFloat(rarest.carteversion.proba_mult) * 100).toFixed(3);
-
-      rarestCardHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:12px;">
-          <div style="width:120px;height:168px;border-radius:10px;border:2px solid ${s.border};
-                      background:${s.bg};overflow:hidden;box-shadow:0 0 20px ${s.glow};
-                      display:flex;flex-direction:column;">
-            <div style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
-              ${image ? `<img src="${image}" style="width:100%;height:100%;object-fit:cover;">` : ''}
-            </div>
-            <div style="padding:6px 8px;background:rgba(0,0,0,0.7);font-size:10px;">
-              <div style="font-weight:700;color:var(--text)">${rarest.carte.name}</div>
-              <div style="color:${s.border}">${rarest.carteversion.emoji} ${rarest.carteversion.label}</div>
-            </div>
-          </div>
-          <span style="font-size:11px;color:var(--text-muted)">${pct}% de chance</span>
-        </div>`;
+      return;
     }
-  }
 
-  // ── Distribution par rareté ────────────────────────────────
-  const colorCount = { vert: 0, jaune: 0, rouge: 0, noir: 0 };
-  (allCollection || []).forEach(c => {
-    if (colorCount[c.carteversion.color] !== undefined)
-      colorCount[c.carteversion.color] += c.quantity;
-  });
-  const totalAll = Object.values(colorCount).reduce((s,v) => s+v, 0);
+    // Charge toutes les stats via la vue SQL
+    const [stats, allCollection, allCartes, allVersions, allDessins] = await Promise.all([
+      sbFetch('admin_collection_stats?select=*&order=total_cards.desc'),
+      sbFetch('collection?select=*,carte(*),carteversion(*)'),
+      sbFetch('carte?select=*&order=scoville.asc'),
+      sbFetch('carteversion?select=*'),
+      sbFetch('cartedessin?select=*'),
+    ]);
 
-  document.getElementById('statsContent').innerHTML = `
+    if (!stats) {
+      document.getElementById('statsContent').innerHTML = `
+      <div class="empty-state"><div class="icon">⚠️</div><p>Erreur de chargement.</p></div>`;
+      return;
+    }
+
+    const totalUsers = stats.length;
+    const totalCards = stats.reduce((s, u) => s + (u.total_cards || 0), 0);
+    document.getElementById('statsSubtitle').textContent =
+      `${totalUsers} joueurs · ${totalCards} cartes au total`;
+
+    // Dessin map
+    const dessinMap = {};
+    (allDessins || []).forEach(d => {
+      dessinMap[`${d.carte_id}_${d.carteversion_id}`] = d.image_url;
+    });
+
+    // ── Top joueurs ────────────────────────────────────────────
+    const topCards = [...stats].sort((a, b) => (b.total_cards || 0) - (a.total_cards || 0))[0];
+    const topUnique = [...stats].sort((a, b) => (b.total_unique || 0) - (a.total_unique || 0))[0];
+    const topRarest = [...stats].filter(u => u.rarest_proba).sort((a, b) => a.rarest_proba - b.rarest_proba)[0];
+
+    // Trouve la carte la plus rare de topRarest
+    let rarestCardHTML = '';
+    if (topRarest && allCollection) {
+      const userColl = allCollection.filter(c => c.twitch_id == topRarest.twitch_id);
+      const rarest = userColl.sort((a, b) =>
+        (parseFloat(a.carte.proba) * parseFloat(a.carteversion.proba_mult)) -
+        (parseFloat(b.carte.proba) * parseFloat(b.carteversion.proba_mult))
+      )[0];
+
+      if (rarest) {
+        const V_STYLES = {
+          vert: { bg: '#0d2d1a', border: '#00e676', glow: 'rgba(0,230,118,0.5)' },
+          jaune: { bg: '#2d2600', border: '#ffd700', glow: 'rgba(255,215,0,0.5)' },
+          rouge: { bg: '#2d0a0a', border: '#ff1744', glow: 'rgba(255,23,68,0.6)' },
+          noir: { bg: '#0a0a12', border: '#e0e0e0', glow: 'rgba(220,220,220,0.7)' },
+        };
+        const s = V_STYLES[rarest.carteversion.color];
+        const image = dessinMap[`${rarest.carte_id}_${rarest.carteversion_id}`] || rarest.carte.image_url || '';
+        const pct = (parseFloat(rarest.carte.proba) * parseFloat(rarest.carteversion.proba_mult) * 100).toFixed(3);
+
+        rarestCardHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:12px;">
+            <div style="
+              width:120px;
+              border-radius:10px;
+              border:2px solid ${s.border};
+              background:${s.bg};
+              overflow:hidden;
+              box-shadow:0 0 20px ${s.glow};
+              display:flex;
+              flex-direction:column;
+            ">
+              <div style="width:100%;aspect-ratio:3/4;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
+                ${image ? `<img src="${image}" style="width:100%;height:100%;object-fit:cover;">` : ''}
+              </div>
+              <div style="padding:6px 8px;background:rgba(0,0,0,0.7);font-size:10px;flex-shrink:0;">
+                <div style="font-weight:700;color:var(--text)">${rarest.carte.name}</div>
+                <div style="color:${s.border}">${rarest.carteversion.emoji} ${rarest.carteversion.label}</div>
+              </div>
+            </div>
+            <span style="font-size:11px;color:var(--text-muted)">${pct}% de chance</span>
+          </div>`;
+      }
+    }
+
+    // ── Distribution par rareté ────────────────────────────────
+    const colorCount = { vert: 0, jaune: 0, rouge: 0, noir: 0 };
+    (allCollection || []).forEach(c => {
+      if (colorCount[c.carteversion.color] !== undefined)
+        colorCount[c.carteversion.color] += c.quantity;
+    });
+    const totalAll = Object.values(colorCount).reduce((s, v) => s + v, 0);
+
+    document.getElementById('statsContent').innerHTML = `
 
     <!-- Podium top 3 joueurs -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:28px;">
@@ -124,10 +133,10 @@
     <div class="page-title" style="font-size:18px;margin-bottom:16px;">Distribution des couleurs</div>
     <div style="display:flex;flex-direction:column;gap:10px;max-width:500px;">
       ${Object.entries(colorCount).map(([color, count]) => {
-        const colors = { vert:'#00e676', jaune:'#ffd700', rouge:'#ff1744', noir:'#e0e0e0' };
-        const emojis = { vert:'🟢', jaune:'🟡', rouge:'🔴', noir:'⚫' };
-        const pct    = totalAll ? Math.round(count / totalAll * 100) : 0;
-        return `
+      const colors = { vert: '#00e676', jaune: '#ffd700', rouge: '#ff1744', noir: '#e0e0e0' };
+      const emojis = { vert: '🟢', jaune: '🟡', rouge: '🔴', noir: '⚫' };
+      const pct = totalAll ? Math.round(count / totalAll * 100) : 0;
+      return `
           <div style="display:flex;align-items:center;gap:12px;">
             <span style="width:70px;font-size:12px;color:${colors[color]}">${emojis[color]} ${color}</span>
             <div style="flex:1;background:var(--glass-border);border-radius:50px;height:8px;overflow:hidden;">
@@ -135,7 +144,7 @@
             </div>
             <span style="font-size:12px;color:var(--text-muted);width:80px;text-align:right">${count} (${pct}%)</span>
           </div>`;
-      }).join('')}
+    }).join('')}
     </div>
 
     <!-- Tableau tous les joueurs -->
@@ -150,9 +159,9 @@
       </tr></thead>
       <tbody>
         ${stats.map((u, i) => {
-          const pct = Math.round((u.total_unique || 0) / 120 * 100);
-          return `<tr>
-            <td style="color:var(--text-muted)">${i+1}</td>
+      const pct = Math.round((u.total_unique || 0) / 120 * 100);
+      return `<tr>
+            <td style="color:var(--text-muted)">${i + 1}</td>
             <td style="font-weight:700">${u.twitch_name || u.twitch_id}</td>
             <td>${u.total_cards || 0}</td>
             <td>${u.total_unique || 0} / 120</td>
@@ -165,28 +174,46 @@
               </div>
             </td>
           </tr>`;
-        }).join('')}
+    }).join('')}
       </tbody>
     </table>
   `;
-})();
+  })();
 </script>
 
 <style>
-.stat-block {
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(12px);
-  border-radius: var(--radius);
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
-}
-.stat-block-icon  { font-size: 36px; }
-.stat-block-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-block-value { font-size: 20px; font-weight: 800; color: var(--pink-light); }
-.stat-block-sub   { font-size: 12px; color: var(--text-sub); }
+  .stat-block {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+  }
+
+  .stat-block-icon {
+    font-size: 36px;
+  }
+
+  .stat-block-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-block-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--pink-light);
+  }
+
+  .stat-block-sub {
+    font-size: 12px;
+    color: var(--text-sub);
+  }
 </style>
