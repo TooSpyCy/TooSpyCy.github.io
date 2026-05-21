@@ -72,15 +72,14 @@ async function refreshProfile() {
   if (!currentTwitchId) return;
   console.log('👤 Refresh profil...');
   try {
-    const { data, error } = await supabaseClient
-      .from('users')
-      .select('*')
-      .eq('twitch_id', Number(currentTwitchId))
-      .single();
-    if (error) { console.error('❌ refreshProfile:', error); return; }
-    currentProfile = data;
-    console.log('✅ Profil:', data);
-    updatePackCount();
+    const data = await sbFetch(
+      `users?twitch_id=eq.${Number(currentTwitchId)}&select=*&limit=1`
+    );
+    if (data?.[0]) {
+      currentProfile = data[0];
+      console.log('✅ Profil:', currentProfile);
+      updatePackCount();
+    }
   } catch (e) {
     console.warn('⚠️ refreshProfile échoué:', e.message);
   }
