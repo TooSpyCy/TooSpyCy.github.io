@@ -8,207 +8,257 @@
 
 <div class="collection-stats" id="collectionStats"></div>
 
+<!-- Grille de slots — un slot par piment (30 au total) -->
 <div class="cards-grid-slots" id="collectionGrid"></div>
 
-<!-- MODAL -->
+<!-- Modal qui s'ouvre quand on clique sur une carte -->
 <div id="cardModal" class="card-modal-overlay hide" onclick="closeModal(event)">
   <div class="card-modal-inner">
     <button class="modal-close" onclick="document.getElementById('cardModal').classList.add('hide')">✕</button>
     <div class="modal-visual" id="modalVisual"></div>
     <div class="modal-info">
-      <span class="modal-name" id="modalName"></span>
-      <span class="modal-version" id="modalVersion"></span>
+      <span class="modal-name"     id="modalName"></span>
+      <span class="modal-version"  id="modalVersion"></span>
       <span class="modal-scoville" id="modalScoville"></span>
-      <!-- <span class="modal-desc"    id="modalDesc"></span> -->
     </div>
   </div>
 </div>
 
 <script>
+  // ── Configuration des couleurs ────────────────────────────────
+  // L'ordre définit comment les boutons sont affichés (vert à gauche, noir à droite)
+
   const VERSION_ORDER = ['vert', 'jaune', 'rouge', 'noir'];
+
   const VERSION_INFO = {
-    vert: { emoji: '🟢', label: 'Vert', color: '#00e676', bg: '#0d2d1a', outline: '#00e676', glow: 'rgba(0,230,118,0.3)', modalBorder: '#00e676' },
-    jaune: { emoji: '🟡', label: 'Jaune', color: '#ffd700', bg: '#2d2600', outline: '#ffd700', glow: 'rgba(255,215,0,0.3)', modalBorder: '#ffd700' },
-    rouge: { emoji: '🔴', label: 'Rouge', color: '#ff1744', bg: '#2d0a0a', outline: '#ff1744', glow: 'rgba(255,23,68,0.35)', modalBorder: '#ff1744' },
-    noir: { emoji: '⚫', label: 'Noir', color: '#000000', bg: '#0a0a12', outline: '#ffffff', glow: 'rgba(220,220,220,0.6)', modalBorder: '#e0e0e0' },
+    vert:  { emoji: '🟢', label: 'Vert',  color: '#00e676', bg: '#0d2d1a', outline: '#00e676', glow: 'rgba(0,230,118,0.3)',   modalBorder: '#00e676' },
+    jaune: { emoji: '🟡', label: 'Jaune', color: '#ffd700', bg: '#2d2600', outline: '#ffd700', glow: 'rgba(255,215,0,0.3)',   modalBorder: '#ffd700' },
+    rouge: { emoji: '🔴', label: 'Rouge', color: '#ff1744', bg: '#2d0a0a', outline: '#ff1744', glow: 'rgba(255,23,68,0.35)',  modalBorder: '#ff1744' },
+    noir:  { emoji: '⚫', label: 'Noir',  color: '#000000', bg: '#0a0a12', outline: '#ffffff', glow: 'rgba(220,220,220,0.6)', modalBorder: '#e0e0e0' },
   };
 
-  let _slotData = [];
-  let _dessinMap = {};
-  let _modalData = [];
+
+  // ── Variables d'état de la page ───────────────────────────────
+
+  let _slotData  = []; // Données de chaque slot (carte + couleur sélectionnée + possession)
+  let _dessinMap = {}; // Map des images : { "carte_id_version_id": "url_image" }
+  let _modalData = []; // Données affichées dans le modal au clic sur un slot
+
+
+  // ── Chargement initial ────────────────────────────────────────
+  // S'exécute automatiquement au chargement de la page
 
   (async function () {
-    const grid = document.getElementById('collectionGrid');
-    const stats = document.getElementById('collectionStats');
+
+    const grid     = document.getElementById('collectionGrid');
     const subtitle = document.getElementById('collectionSubtitle');
 
+    // Si l'utilisateur n'est pas connecté, on affiche un message
     if (!currentTwitchId) {
       grid.innerHTML = `
-      <div class="not-logged" style="grid-column:1/-1">
-        <div class="icon">🔒</div>
-        <p>Connecte-toi avec Twitch pour voir ta collection !</p>
-      </div>`;
+        <div class="not-logged" style="grid-column:1/-1">
+          <div class="icon">🔒</div>
+          <p>Connecte-toi avec Twitch pour voir ta collection !</p>
+        </div>`;
       return;
     }
 
+    // Affiche le spinner pendant le chargement
     grid.innerHTML = '<div class="loading-cards" style="grid-column:1/-1"><div class="spinner"></div></div>';
 
+    // Charge tout en parallèle pour aller plus vite
     const [allCartes, collection, dessinMap] = await Promise.all([
-      getAllCartes(),       // triées par scoville ASC
-      getUserCollection(),
-      getDessinMap(),
+      getAllCartes(),       // Tous les piments, triés du moins au plus piquant
+      getUserCollection(), // Les cartes possédées par le joueur connecté
+      getDessinMap(),      // Les images associées à chaque combinaison piment+couleur
     ]);
 
     _dessinMap = dessinMap;
 
-    // Map : carte_id → { vert: item|null, jaune: item|null, ... }
+    // Construit une map pour retrouver rapidement les cartes possédées
+    // Structure : { "uuid-du-piment": { vert: item|null, jaune: item|null, ... } }
     const ownedMap = {};
     collection.forEach(item => {
-      const cid = item.carte_id;
-      if (!ownedMap[cid]) ownedMap[cid] = { vert: null, jaune: null, rouge: null, noir: null };
-      ownedMap[cid][item.carteversion.color] = item;
+      const carteId = item.carte_id;
+      if (!ownedMap[carteId]) {
+        ownedMap[carteId] = { vert: null, jaune: null, rouge: null, noir: null };
+      }
+      ownedMap[carteId][item.carteversion.color] = item;
     });
 
-    // Stats
-    const totalCards = collection.reduce((s, i) => s + i.quantity, 0);
+    // Calcule les stats pour le sous-titre
     const uniqueCartes = Object.keys(ownedMap).length;
-    const hasNoir = collection.some(i => i.carteversion.color === 'noir');
     subtitle.textContent = `${uniqueCartes} / ${allCartes.length} piments découverts`;
 
-    // stats.innerHTML = `
-    // <span class="stat-pill">${totalCards} carte${totalCards > 1 ? 's' : ''}</span>
-    // <span class="stat-pill">${uniqueCartes} / ${allCartes.length} piments</span>`;
-
-    // Construit les données des slots
-    _slotData = allCartes.map((carte, i) => {
-      const owned = ownedMap[carte.id] || { vert: null, jaune: null, rouge: null, noir: null };
-      const hasAny = VERSION_ORDER.some(c => owned[c] !== null);
-      const defaultColor = [...VERSION_ORDER].reverse().find(c => owned[c] !== null) || 'vert';
+    // Construit les données de chaque slot
+    // Un slot = un piment, avec la couleur la plus rare possédée sélectionnée par défaut
+    _slotData = allCartes.map(carte => {
+      const owned        = ownedMap[carte.id] || { vert: null, jaune: null, rouge: null, noir: null };
+      const hasAny       = VERSION_ORDER.some(color => owned[color] !== null);
+      // Cherche la couleur la plus rare possédée (noir > rouge > jaune > vert)
+      const defaultColor = [...VERSION_ORDER].reverse().find(color => owned[color] !== null) || 'vert';
       return { carte, owned, selectedColor: defaultColor, hasAny };
     });
 
     renderAllSlots();
+
   })();
 
-  // ── Rendu de tous les slots ─────────────────────────────────
+
+  // ── Affiche tous les slots dans la grille ────────────────────
+
   function renderAllSlots() {
     const grid = document.getElementById('collectionGrid');
     _modalData = [];
     grid.innerHTML = _slotData.map((slot, i) => renderSlot(slot, i)).join('');
   }
 
-  // ── Rendu d'un slot ─────────────────────────────────────────
+
+  // ── Génère le HTML d'un slot individuel ──────────────────────
+  // Un slot = une carte de la collection avec ses 4 boutons de couleur
+
   function renderSlot(slot, i) {
+
     const { carte: c, owned, selectedColor, hasAny } = slot;
-    const vi = VERSION_INFO[selectedColor];
-    const hasSelected = owned[selectedColor] !== null;
-    const item = owned[selectedColor];
+    const vi          = VERSION_INFO[selectedColor];
+    const hasSelected = owned[selectedColor] !== null; // Le joueur a-t-il cette couleur ?
+    const item        = owned[selectedColor];
+
+    // Cherche l'image pour cette combinaison piment+couleur
     const image = hasSelected
       ? (_dessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '')
       : '';
 
-    // Données pour le modal
+    // Stocke les données pour le modal (utilisé quand on clique sur la carte)
     _modalData[i] = hasSelected ? {
-      name: c.name, version: vi.emoji + ' ' + vi.label,
-      scoville: c.scoville, description: '',
-      image, border: vi.color, modalBorder: vi.modalBorder,
-      bg: vi.bg, glow: vi.glow,
+      name:        c.name,
+      version:     vi.emoji + ' ' + vi.label,
+      scoville:    c.scoville,
+      description: '',
+      image,
+      border:      vi.color,
+      modalBorder: vi.modalBorder,
+      bg:          vi.bg,
+      glow:        vi.glow,
     } : null;
 
-    // Style du slot
-    const borderColor = !hasAny ? 'rgba(255,255,255,0.07)'
-      : !hasSelected ? 'rgba(255,255,255,0.15)'
-        : vi.color;
-    const bgColor = !hasAny ? '#080810'
-      : !hasSelected ? '#0f0f18'
-        : vi.bg;
+    // Couleur de la bordure du slot selon l'état de possession
+    const borderColor = !hasAny      ? 'rgba(255,255,255,0.07)'  // Jamais possédé
+                      : !hasSelected ? 'rgba(255,255,255,0.15)'  // Possédé mais pas cette couleur
+                      :                vi.color;                  // Possédé dans cette couleur
+
+    const bgColor   = !hasAny      ? '#080810'
+                    : !hasSelected ? '#0f0f18'
+                    :                vi.bg;
+
     const glowStyle = hasSelected ? `box-shadow:0 0 18px ${vi.glow}` : '';
 
-    // 4 boutons de version
+    // Les 4 petits boutons de couleur en bas du slot
     const btns = VERSION_ORDER.map(color => {
-      const vInfo = VERSION_INFO[color];
-      const hasColor = owned[color] !== null;
+      const vInfo      = VERSION_INFO[color];
+      const hasColor   = owned[color] !== null; // Le joueur possède-t-il cette couleur ?
       const isSelected = color === selectedColor;
       return `<button
-      class="ver-btn"
-      onclick="selectVersion(${i}, '${color}')"
-      title="${vInfo.label}"
-      style="
-        background:  ${hasColor ? vInfo.color : 'rgba(255,255,255,0.5)'};
-        outline:     ${isSelected ? `2px solid ${vInfo.outline}` : '2px solid transparent'};
-        opacity:     ${hasColor ? 1 : 0.2};
-        box-shadow:  ${isSelected && hasColor ? `0 0 8px ${vInfo.color}` : 'none'};
-      "
-    ></button>`;
+        class="ver-btn"
+        onclick="selectVersion(${i}, '${color}')"
+        title="${vInfo.label}"
+        style="
+          background:  ${hasColor ? vInfo.color : 'rgba(255,255,255,0.5)'};
+          outline:     ${isSelected ? `2px solid ${vInfo.outline}` : '2px solid transparent'};
+          opacity:     ${hasColor ? 1 : 0.2};
+          box-shadow:  ${isSelected && hasColor ? `0 0 8px ${vInfo.color}` : 'none'};
+        "
+      ></button>`;
     }).join('');
 
-    // Visuel principal
+    // Image principale du slot
     let visual = '';
     if (hasSelected && image) {
-      visual = `<img src="${image}" alt="${c.name}">`;
+      visual = `<img src="${image}" alt="${c.name}">`;           // Image personnalisée
     } else if (hasSelected) {
-      visual = pepperSVG(selectedColor, c.scoville);
+      visual = pepperSVG(selectedColor, c.scoville);            // SVG de remplacement
     } else {
-      visual = `<div class="slot-unknown">?</div>`;
+      visual = `<div class="slot-unknown">?</div>`;             // Carte non possédée
     }
 
-    const qty = hasSelected && item.quantity > 1 ? `<span class="card-qty" style="position:absolute;right:5%">×${item.quantity}</span>` : '';
+    // Badge "×2", "×3"... si le joueur a plusieurs exemplaires
+    const qty = hasSelected && item.quantity > 1
+      ? `<span class="card-qty" style="position:absolute;right:5%">×${item.quantity}</span>`
+      : '';
 
     return `
-    <div class="slot-item" id="slot-${i}"
-         style="border-color:${borderColor};background:${bgColor};${glowStyle}"
-         onclick="handleSlotClick(${i})">
-      <div class="slot-visual">
-        ${visual}
+      <div class="slot-item" id="slot-${i}"
+           style="border-color:${borderColor};background:${bgColor};${glowStyle}"
+           onclick="handleSlotClick(${i})">
+        <div class="slot-visual">
+          ${visual}
         </div>
-      <div class="slot-info">
-        ${qty}
-        <span class="card-name">${hasAny ? c.name : '???'}</span>
-        <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} Scoville</span>
-      </div>
-      <div class="slot-ver-btns" onclick="event.stopPropagation()">
-        ${btns}
-      </div>
-      ${selectedColor === 'noir' && hasSelected ? '<div class="noir-shimmer"></div>' : ''}
-    </div>`;
+        <div class="slot-info">
+          ${qty}
+          <span class="card-name">${hasAny ? c.name : '???'}</span>
+          <span class="card-scoville">${c.scoville.toLocaleString('fr-FR')} Scoville</span>
+        </div>
+        <div class="slot-ver-btns" onclick="event.stopPropagation()">
+          ${btns}
+        </div>
+        ${selectedColor === 'noir' && hasSelected ? '<div class="noir-shimmer"></div>' : ''}
+      </div>`;
   }
 
-  // ── Sélectionne une version pour un slot ───────────────────
+
+  // ── Change la couleur affichée pour un slot ───────────────────
+  // Appelée quand on clique sur un des 4 boutons de couleur
+
   function selectVersion(i, color) {
     _slotData[i].selectedColor = color;
-    const el = document.getElementById(`slot-${i}`);
+
+    // Remplace seulement ce slot dans le DOM, sans tout re-rendre
+    const el  = document.getElementById(`slot-${i}`);
     const tmp = document.createElement('div');
     tmp.innerHTML = renderSlot(_slotData[i], i);
     el.replaceWith(tmp.firstElementChild);
   }
 
-  // ── Clic sur le slot → ouvre le modal ──────────────────────
+
+  // ── Ouvre le modal de détail d'une carte ─────────────────────
+  // Appelée quand on clique sur un slot
+
   function handleSlotClick(i) {
+
     const data = _modalData[i];
-    if (!data) return;
+    if (!data) return; // Carte non possédée → pas de modal
 
     document.getElementById('cardModal').classList.remove('hide');
-    document.getElementById('modalName').textContent = data.name;
-    document.getElementById('modalVersion').textContent = data.version;
-    document.getElementById('modalVersion').style.color = data.border;
+    document.getElementById('modalName').textContent     = data.name;
+    document.getElementById('modalVersion').textContent  = data.version;
+    document.getElementById('modalVersion').style.color  = data.border;
     document.getElementById('modalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' Scoville';
-    // document.getElementById('modalDesc').textContent      = data.description;
-    document.getElementById('modalVisual').innerHTML = data.image
+    document.getElementById('modalVisual').innerHTML     = data.image
       ? `<img src="${data.image}" alt="${data.name}">`
       : pepperSVG('vert', data.scoville);
 
+    // Adapte les couleurs du modal à la version de la carte
     const inner = document.querySelector('.card-modal-inner');
     inner.style.borderColor = data.modalBorder;
-    inner.style.background = data.bg;
-    inner.style.boxShadow = `0 0 60px ${data.glow}`;
+    inner.style.background  = data.bg;
+    inner.style.boxShadow   = `0 0 60px ${data.glow}`;
   }
+
+
+  // ── Ferme le modal en cliquant sur le fond ────────────────────
 
   function closeModal(e) {
-    if (e.target.id === 'cardModal')
+    if (e.target.id === 'cardModal') {
       document.getElementById('cardModal').classList.add('hide');
+    }
   }
 
-  window.selectVersion = selectVersion;
+
+  // ── Expose les fonctions au HTML ──────────────────────────────
+  // Nécessaire car le script est dans un IIFE (voir tools.js)
+
+  window.selectVersion   = selectVersion;
   window.handleSlotClick = handleSlotClick;
-  window.closeModal = closeModal;
+  window.closeModal      = closeModal;
+
 </script>
