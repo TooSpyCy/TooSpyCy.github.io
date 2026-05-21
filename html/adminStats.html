@@ -14,13 +14,22 @@
 
 <script>
   (async function () {
+
+    // Bloque l'accès si l'utilisateur n'est pas admin
     if (!isAdmin) {
       document.getElementById('statsContent').innerHTML = `
-      <div class="empty-state"><div class="icon">🚫</div><p>Accès refusé.</p></div>`;
+        <div class="empty-state"><div class="icon">🚫</div><p>Accès refusé.</p></div>`;
       return;
     }
 
-    // Charge toutes les stats via la vue SQL
+    // ── Chargement des données ────────────────────────────────
+    // On charge tout en parallèle pour aller plus vite
+    // - stats         : vue SQL avec les totaux par joueur
+    // - allCollection : toutes les cartes de tous les joueurs
+    // - allCartes     : catalogue des piments
+    // - allVersions   : les 4 couleurs
+    // - allDessins    : les images des cartes
+
     const [stats, allCollection, allCartes, allVersions, allDessins] = await Promise.all([
       sbFetch('admin_collection_stats?select=*&order=total_cards.desc'),
       sbFetch('collection?select=*,carte(*),carteversion(*)'),
@@ -31,45 +40,72 @@
 
     if (!stats) {
       document.getElementById('statsContent').innerHTML = `
-      <div class="empty-state"><div class="icon">⚠️</div><p>Erreur de chargement.</p></div>`;
+        <div class="empty-state"><div class="icon">⚠️</div><p>Erreur de chargement.</p></div>`;
       return;
     }
 
+    // Résumé global dans le sous-titre
     const totalUsers = stats.length;
-    const totalCards = stats.reduce((s, u) => s + (u.total_cards || 0), 0);
+    const totalCards = stats.reduce((somme, u) => somme + (u.total_cards || 0), 0);
     document.getElementById('statsSubtitle').textContent =
       `${totalUsers} joueurs · ${totalCards} cartes au total`;
 
-    // Dessin map
+    // ── Map des images ────────────────────────────────────────
+    // Structure : { "carte_id_version_id": "url_image" }
+
     const dessinMap = {};
-    (allDessins || []).forEach(d => {
-      dessinMap[`${d.carte_id}_${d.carteversion_id}`] = d.image_url;
+    (allDessins || []).forEach(dessin => {
+      const cle = `${dessin.carte_id}_${dessin.carteversion_id}`;
+      dessinMap[cle] = dessin.image_url;
     });
 
-    // ── Top joueurs ────────────────────────────────────────────
+    // ── Trouve les top joueurs ────────────────────────────────
+
+    // Joueur avec le plus de cartes au total (doublons inclus)
     const topCards = [...stats].sort((a, b) => (b.total_cards || 0) - (a.total_cards || 0))[0];
+
+    // Joueur avec le plus de cartes uniques (combinaisons différentes)
     const topUnique = [...stats].sort((a, b) => (b.total_unique || 0) - (a.total_unique || 0))[0];
-    const topRarest = [...stats].filter(u => u.rarest_proba).sort((a, b) => a.rarest_proba - b.rarest_proba)[0];
 
-    // Trouve la carte la plus rare de topRarest
+    // Joueur qui possède la carte avec la plus basse probabilité
+    const topRarest = [...stats]
+      .filter(u => u.rarest_proba) // Ignore les joueurs sans carte
+      .sort((a, b) => a.rarest_proba - b.rarest_proba)[0]; // Du plus rare au moins rare
+
+    // ── Génère le HTML de la carte la plus rare ───────────────
+    // On cherche quelle carte précise le joueur possède
+
     let rarestCardHTML = '';
-    if (topRarest && allCollection) {
-      const userColl = allCollection.filter(c => c.twitch_id == topRarest.twitch_id);
-      const rarest = userColl.sort((a, b) =>
-        (parseFloat(a.carte.proba) * parseFloat(a.carteversion.proba_mult)) -
-        (parseFloat(b.carte.proba) * parseFloat(b.carteversion.proba_mult))
-      )[0];
 
-      if (rarest) {
-        const V_STYLES = {
-          vert: { bg: '#0d2d1a', border: '#00e676', glow: 'rgba(0,230,118,0.5)' },
-          jaune: { bg: '#2d2600', border: '#ffd700', glow: 'rgba(255,215,0,0.5)' },
-          rouge: { bg: '#2d0a0a', border: '#ff1744', glow: 'rgba(255,23,68,0.6)' },
-          noir: { bg: '#0a0a12', border: '#e0e0e0', glow: 'rgba(220,220,220,0.7)' },
+    if (topRarest && allCollection) {
+
+      // Filtre uniquement les cartes de ce joueur
+      const collectionDuJoueur = allCollection.filter(c => c.twitch_id == topRarest.twitch_id);
+
+      // Trie pour trouver sa carte la plus rare (probabilité la plus basse)
+      const carteLaPlusRare = collectionDuJoueur.sort((a, b) => {
+        const probaA = parseFloat(a.carte.proba) * parseFloat(a.carteversion.proba_mult);
+        const probaB = parseFloat(b.carte.proba) * parseFloat(b.carteversion.proba_mult);
+        return probaA - probaB;
+      })[0];
+
+      if (carteLaPlusRare) {
+
+        const couleurs = {
+          vert:  { bg: '#0d2d1a', border: '#00e676', glow: 'rgba(0,230,118,0.5)'  },
+          jaune: { bg: '#2d2600', border: '#ffd700', glow: 'rgba(255,215,0,0.5)'  },
+          rouge: { bg: '#2d0a0a', border: '#ff1744', glow: 'rgba(255,23,68,0.6)'  },
+          noir:  { bg: '#0a0a12', border: '#e0e0e0', glow: 'rgba(220,220,220,0.7)'},
         };
-        const s = V_STYLES[rarest.carteversion.color];
-        const image = dessinMap[`${rarest.carte_id}_${rarest.carteversion_id}`] || rarest.carte.image_url || '';
-        const pct = (parseFloat(rarest.carte.proba) * parseFloat(rarest.carteversion.proba_mult) * 100).toFixed(3);
+
+        const s     = couleurs[carteLaPlusRare.carteversion.color];
+        const image = dessinMap[`${carteLaPlusRare.carte_id}_${carteLaPlusRare.carteversion_id}`]
+                   || carteLaPlusRare.carte.image_url
+                   || '';
+        const pct   = (
+          parseFloat(carteLaPlusRare.carte.proba) *
+          parseFloat(carteLaPlusRare.carteversion.proba_mult) * 100
+        ).toFixed(3);
 
         rarestCardHTML = `
           <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:12px;">
@@ -83,12 +119,14 @@
               display:flex;
               flex-direction:column;
             ">
+              <!-- Image de la carte avec le bon ratio -->
               <div style="width:100%;aspect-ratio:3/4;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
-                ${image ? `<img src="${image}" style="width:100%;height:100%">` : ''}
+                ${image ? `<img src="${image}" style="width:100%;height:100%;object-fit:cover;">` : ''}
               </div>
+              <!-- Nom et couleur -->
               <div style="padding:6px 8px;background:rgba(0,0,0,0.7);font-size:10px;flex-shrink:0;">
-                <div style="font-weight:700;color:var(--text)">${rarest.carte.name}</div>
-                <div style="color:${s.border}">${rarest.carteversion.emoji} ${rarest.carteversion.label}</div>
+                <div style="font-weight:700;color:var(--text)">${carteLaPlusRare.carte.name}</div>
+                <div style="color:${s.border}">${carteLaPlusRare.carteversion.emoji} ${carteLaPlusRare.carteversion.label}</div>
               </div>
             </div>
             <span style="font-size:11px;color:var(--text-muted)">${pct}% de chance</span>
@@ -96,88 +134,102 @@
       }
     }
 
-    // ── Distribution par rareté ────────────────────────────────
+    // ── Distribution par couleur ──────────────────────────────
+    // Compte combien de cartes de chaque couleur existent au total
+
     const colorCount = { vert: 0, jaune: 0, rouge: 0, noir: 0 };
-    (allCollection || []).forEach(c => {
-      if (colorCount[c.carteversion.color] !== undefined)
-        colorCount[c.carteversion.color] += c.quantity;
+
+    (allCollection || []).forEach(carte => {
+      const couleur = carte.carteversion.color;
+      if (colorCount[couleur] !== undefined) {
+        colorCount[couleur] += carte.quantity;
+      }
     });
-    const totalAll = Object.values(colorCount).reduce((s, v) => s + v, 0);
+
+    // Total toutes couleurs confondues (pour calculer les pourcentages)
+    const totalToutes = Object.values(colorCount).reduce((somme, v) => somme + v, 0);
+
+    // ── Affichage final ───────────────────────────────────────
 
     document.getElementById('statsContent').innerHTML = `
 
-    <!-- Podium top 3 joueurs -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:28px;">
+      <!-- Top 3 joueurs -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:28px;">
 
-      <div class="stat-block">
-        <div class="stat-block-label">Le plus de cartes</div>
-        <div class="stat-block-value">${topCards?.twitch_name || '—'}</div>
-        <div class="stat-block-sub">${topCards?.total_cards || 0} cartes au total</div>
+        <div class="stat-block">
+          <div class="stat-block-label">Le plus de cartes</div>
+          <div class="stat-block-value">${topCards?.twitch_name || '—'}</div>
+          <div class="stat-block-sub">${topCards?.total_cards || 0} cartes au total</div>
+        </div>
+
+        <div class="stat-block">
+          <div class="stat-block-label">Le plus de cartes uniques</div>
+          <div class="stat-block-value">${topUnique?.twitch_name || '—'}</div>
+          <div class="stat-block-sub">${topUnique?.total_unique || 0} / 120 combinaisons</div>
+        </div>
+
+        <div class="stat-block">
+          <div class="stat-block-label">Carte la plus rare obtenue</div>
+          <div class="stat-block-value">${topRarest?.twitch_name || '—'}</div>
+          ${rarestCardHTML}
+        </div>
+
       </div>
 
-      <div class="stat-block">
-        <div class="stat-block-label">Le plus de cartes uniques</div>
-        <div class="stat-block-value">${topUnique?.twitch_name || '—'}</div>
-        <div class="stat-block-sub">${topUnique?.total_unique || 0} / 120 combinaisons</div>
-      </div>
-
-      <div class="stat-block">
-        <div class="stat-block-label">Carte la plus rare obtenue</div>
-        <div class="stat-block-value">${topRarest?.twitch_name || '—'}</div>
-        ${rarestCardHTML}
-      </div>
-
-    </div>
-
-    <!-- Distribution couleurs -->
-    <div class="page-title" style="font-size:18px;margin-bottom:16px;">Distribution des couleurs</div>
-    <div style="display:flex;flex-direction:column;gap:10px;max-width:500px;">
-      ${Object.entries(colorCount).map(([color, count]) => {
-      const colors = { vert: '#00e676', jaune: '#ffd700', rouge: '#ff1744', noir: '#e0e0e0' };
-      const emojis = { vert: '🟢', jaune: '🟡', rouge: '🔴', noir: '⚫' };
-      const pct = totalAll ? Math.round(count / totalAll * 100) : 0;
-      return `
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span style="width:70px;font-size:12px;color:${colors[color]}">${emojis[color]} ${color}</span>
-            <div style="flex:1;background:var(--glass-border);border-radius:50px;height:8px;overflow:hidden;">
-              <div style="width:${pct}%;height:100%;background:${colors[color]};border-radius:50px;transition:width 0.5s ease;"></div>
-            </div>
-            <span style="font-size:12px;color:var(--text-muted);width:80px;text-align:right">${count} (${pct}%)</span>
-          </div>`;
-    }).join('')}
-    </div>
-
-    <!-- Tableau tous les joueurs -->
-    <div class="page-title" style="font-size:18px;margin:28px 0 16px;">Tous les joueurs</div>
-    <table class="proba-table">
-      <thead><tr>
-        <th>#</th>
-        <th>Joueur</th>
-        <th>Cartes totales</th>
-        <th>Uniques</th>
-        <th>Progression</th>
-      </tr></thead>
-      <tbody>
-        ${stats.map((u, i) => {
-      const pct = Math.round((u.total_unique || 0) / 120 * 100);
-      return `<tr>
-            <td style="color:var(--text-muted)">${i + 1}</td>
-            <td style="font-weight:700">${u.twitch_name || u.twitch_id}</td>
-            <td>${u.total_cards || 0}</td>
-            <td>${u.total_unique || 0} / 120</td>
-            <td>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <div class="proba-bar-bg">
-                  <div class="proba-bar" style="width:${pct}%"></div>
-                </div>
-                <span style="font-size:11px;color:var(--text-muted)">${pct}%</span>
+      <!-- Distribution des couleurs avec barres de progression -->
+      <div class="page-title" style="font-size:18px;margin-bottom:16px;">Distribution des couleurs</div>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:500px;">
+        ${Object.entries(colorCount).map(([color, count]) => {
+          const couleurs = { vert: '#00e676', jaune: '#ffd700', rouge: '#ff1744', noir: '#e0e0e0' };
+          const emojis  = { vert: '🟢',      jaune: '🟡',      rouge: '🔴',      noir: '⚫'      };
+          const pct     = totalToutes ? Math.round(count / totalToutes * 100) : 0;
+          return `
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="width:70px;font-size:12px;color:${couleurs[color]}">${emojis[color]} ${color}</span>
+              <div style="flex:1;background:var(--glass-border);border-radius:50px;height:8px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:${couleurs[color]};border-radius:50px;transition:width 0.5s ease;"></div>
               </div>
-            </td>
-          </tr>`;
-    }).join('')}
-      </tbody>
-    </table>
-  `;
+              <span style="font-size:12px;color:var(--text-muted);width:80px;text-align:right">${count} (${pct}%)</span>
+            </div>`;
+        }).join('')}
+      </div>
+
+      <!-- Tableau classement de tous les joueurs -->
+      <div class="page-title" style="font-size:18px;margin:28px 0 16px;">Tous les joueurs</div>
+      <table class="proba-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Joueur</th>
+            <th>Cartes totales</th>
+            <th>Uniques</th>
+            <th>Progression</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${stats.map((joueur, i) => {
+            // Pourcentage de complétion sur 120 combinaisons possibles
+            const pct = Math.round((joueur.total_unique || 0) / 120 * 100);
+            return `
+              <tr>
+                <td style="color:var(--text-muted)">${i + 1}</td>
+                <td style="font-weight:700">${joueur.twitch_name || joueur.twitch_id}</td>
+                <td>${joueur.total_cards || 0}</td>
+                <td>${joueur.total_unique || 0} / 120</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="proba-bar-bg">
+                      <div class="proba-bar" style="width:${pct}%"></div>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-muted)">${pct}%</span>
+                  </div>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+
   })();
 </script>
 
@@ -193,10 +245,6 @@
     align-items: center;
     text-align: center;
     gap: 6px;
-  }
-
-  .stat-block-icon {
-    font-size: 36px;
   }
 
   .stat-block-label {
