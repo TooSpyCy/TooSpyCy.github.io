@@ -535,11 +535,11 @@
       const s = V_STYLES[d.version.color];
       return `
         <div class="revealed-mini" style="
-           width:${cardW};
-  border-color:${s.border};
-  background:${s.bg};
-  box-shadow:0 0 ${allRevealed ? '20px' : '8px'} ${s.glow};
-  ${allRevealed ? 'animation:popIn 0.3s ease both;' : ''}
+            width:${cardW};
+            border-color:${s.border};
+            background:${s.bg};
+            box-shadow:0 0 ${allRevealed ? '20px' : '8px'} ${s.glow};
+            ${allRevealed ? 'animation:popIn 0.3s ease both;' : ''}
         ">
           <div class="mini-img">
             ${d.image ? `<img src="${d.image}" alt="${d.carte.name}">` : pepperSVG(d.version.color, d.carte.scoville)}
