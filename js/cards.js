@@ -45,19 +45,68 @@ async function getAllVersions() {
 }
 
 async function getUserCollection() {
-  if (!currentTwitchId) { console.warn('⚠️ getUserCollection: pas de twitchId'); return []; }
-  console.log('👤 Chargement collection pour', Number(currentTwitchId));
-  const { data, error } = await withTimeout(
-    supabaseClient.from('collection')
-      .select(`*, carte(*), carteversion(*)`)
-      .eq('twitch_id', Number(currentTwitchId))
-      .order('obtained_at', { ascending: false })
-  );
-  if (error || !data) { console.error('❌ getUserCollection échoué'); return []; }
-  console.log(`✅ ${data.length} cartes en collection`);
-  return data;
-}
+  if (!currentTwitchId) return [];
+  console.log('👤 Chargement collection...');
 
+  // Test 1 : est-ce que la requête part même ?
+  console.log('📡 Envoi requête Supabase...');
+  
+  const query = supabaseClient
+    .from('collection')
+    .select(`*, carte(*), carteversion(*)`)
+    .eq('twitch_id', Number(currentTwitchId))
+    .order('obtained_at', { ascending: false });
+
+  // Timers de diagnostic
+  const t3  = setTimeout(() => console.warn('⏳ 3s — pas de réponse'), 3000);
+  const t8  = setTimeout(() => console.warn('⏳ 8s — toujours rien'), 8000);
+  const t14 = setTimeout(() => console.warn('💀 14s — timeout imminent'), 14000);
+
+  try {
+    const { data, error, status, statusText } = await Promise.race([
+      query,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout 15s')), 15000))
+    ]);
+
+    clearTimeout(t3); clearTimeout(t8); clearTimeout(t14);
+
+    console.log('📥 Réponse reçue — status:', status, statusText);
+
+    if (error) {
+      console.error('❌ Erreur Supabase:', {
+        code:    error.code,
+        message: error.message,
+        details: error.details,
+        hint:    error.hint,
+        status:  error.status,
+      });
+      return [];
+    }
+
+    console.log(`✅ ${data.length} cartes`);
+    return data || [];
+
+  } catch (err) {
+    clearTimeout(t3); clearTimeout(t8); clearTimeout(t14);
+    console.error('💥 Exception attrapée:', err.name, err.message);
+    
+    // Test 2 : est-ce que Brave bloque fetch vers Supabase ?
+    console.log('🧪 Test fetch direct...');
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/collection?limit=1`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      console.log('🧪 Fetch direct OK — status:', r.status);
+    } catch (fetchErr) {
+      console.error('🚫 Fetch direct BLOQUÉ par Brave:', fetchErr.message);
+    }
+    
+    return [];
+  }
+}
 // Helper timeout pour toutes les requêtes Supabase
 async function withTimeout(promise, ms = 15000) {
   const timer = new Promise((_, reject) =>
