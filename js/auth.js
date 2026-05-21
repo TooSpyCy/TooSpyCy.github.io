@@ -5,6 +5,7 @@
 let currentUser     = null;
 let currentTwitchId = null;
 let currentProfile  = null;
+let isAdmin = false;
 
 // Token JWT mis à jour automatiquement via onAuthStateChange
 // Utilisé par sbFetch/sbRpc dans cards.js sans appeler getSession()
@@ -81,6 +82,8 @@ async function refreshProfile() {
     currentProfile = data;
     console.log('✅ Profil:', data);
     updatePackCount();
+    isAdmin = currentProfile?.is_admin === true;
+    updateAdminNav();
   } catch (e) {
     console.warn('⚠️ refreshProfile échoué:', e.message);
   }
@@ -132,4 +135,11 @@ function updatePackCount() {
   const count = currentProfile?.nbrpacks || 0;
   badge.textContent   = count;
   badge.style.display = count > 0 ? 'flex' : 'none';
+}
+
+// Ajoute cette fonction dans auth.js
+function updateAdminNav() {
+  const adminGroup = document.getElementById('adminNavGroup');
+  if (!adminGroup) return;
+  adminGroup.style.display = isAdmin ? 'flex' : 'none';
 }
