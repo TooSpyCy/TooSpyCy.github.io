@@ -45,7 +45,7 @@
 <!-- Recherche -->
 <div class="page-header">
   <div>
-    <div class="page-title">🔍 Collection d'un joueur</div>
+    <div class="page-title">Collection d'un joueur</div>
     <div class="page-subtitle">Tape un pseudo Twitch pour voir sa collection</div>
   </div>
 </div>
@@ -64,7 +64,7 @@
   </div>
 </div>
 
-<div class="collection-stats" id="adminCollStats"></div>
+<!-- <div class="collection-stats" id="adminCollStats"></div> -->
 <div class="cards-grid-slots" id="adminCollGrid"></div>
 
 <!-- MODAL — copie exacte -->
@@ -178,7 +178,6 @@ async function adminLoadCollection(twitchId, twitchName) {
   document.getElementById('adminCollStats').innerHTML = `
     <span class="stat-pill">${totalCards} carte${totalCards > 1 ? 's' : ''}</span>
     <span class="stat-pill">${uniqueCartes} / ${allCartes.length} piments</span>
-    ${hasNoir ? `<span class="stat-pill gold">⚫ Version Noire obtenue !</span>` : ''}
   `;
 
   // Construit les données des slots — copie exacte
