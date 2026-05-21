@@ -452,7 +452,7 @@
     pack.style.pointerEvents = 'none';
     pack.classList.add('pack-bursting');
     spawnParticles();
-    
+
     const drawn = await openPack();
 
     if (!drawn || !drawn.length) {
@@ -486,7 +486,7 @@
   }
 
   function renderStackView() {
-    const remaining = _sortedCards.length - _currentIndex;
+    const remaining = _sortedCards.length - _currentIndex - 1;
 
     const shadowsHTML = remaining > 1
       ? `<div class="stack-shadow"></div><div class="stack-shadow"></div>`
