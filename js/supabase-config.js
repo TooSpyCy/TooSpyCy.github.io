@@ -6,6 +6,7 @@ const SUPABASE_URL      = 'https://trayertrmajocnfrengj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_KLjT25yOxTILq4YKeiJUtw_0JteKl2m';
 
 const { createClient } = supabase;
+
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     autoRefreshToken: true,
@@ -13,11 +14,10 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     detectSessionInUrl: true,
   },
   realtime: {
-    params: {
-      eventsPerSecond: 0
-    }
-  },
-  db: {
-    schema: 'public'
+    params: { eventsPerSecond: 0 }
   }
 });
+
+// Déconnecte immédiatement le WebSocket realtime
+// que Supabase ouvre automatiquement — cause des bugs sur Brave
+supabaseClient.realtime.disconnect();
