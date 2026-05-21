@@ -201,11 +201,11 @@ body {
 .nav-home {
   background: var(--glass);
   border: 2px solid transparent;
-  border-radius: var(--radius);
+  border-radius: 100%;
   padding: 10px;
   cursor: pointer;
-  width: 100px;
-  height: 100px;
+  width: 150px;
+  height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
