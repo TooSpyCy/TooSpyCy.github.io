@@ -101,21 +101,18 @@
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:28px;">
 
       <div class="stat-block">
-        <div class="stat-block-icon">🃏</div>
         <div class="stat-block-label">Le plus de cartes</div>
         <div class="stat-block-value">${topCards?.twitch_name || '—'}</div>
         <div class="stat-block-sub">${topCards?.total_cards || 0} cartes au total</div>
       </div>
 
       <div class="stat-block">
-        <div class="stat-block-icon">✨</div>
         <div class="stat-block-label">Le plus de cartes uniques</div>
         <div class="stat-block-value">${topUnique?.twitch_name || '—'}</div>
         <div class="stat-block-sub">${topUnique?.total_unique || 0} / 120 combinaisons</div>
       </div>
 
       <div class="stat-block">
-        <div class="stat-block-icon">⚫</div>
         <div class="stat-block-label">Carte la plus rare obtenue</div>
         <div class="stat-block-value">${topRarest?.twitch_name || '—'}</div>
         ${rarestCardHTML}
