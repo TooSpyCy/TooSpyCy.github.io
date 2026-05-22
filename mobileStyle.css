@@ -387,6 +387,15 @@
     padding: 9px 16px;
     font-size: 12px;
   }
+
+  .pack-click-label {
+    position: absolute;
+    bottom: 16vh !important;
+  }
+
+  .pack-number-left {
+    bottom: 12vh !important;
+  }
 }
 
 /* ── Très petits écrans (iPhone SE, etc.) ─────────────────── */
@@ -417,9 +426,9 @@
 
   /* Modal en colonne sur très petit écran */
   .card-modal-inner {
-    width:350px;
+    width: 350px;
   }
-/*
+  /*
   .modal-visual {
     width: 100px;
   } */
@@ -462,8 +471,8 @@
   }
 
   .pack-click-label {
-    position:absolute;
-    bottom:16vh !important;
+    position: absolute;
+    bottom: 16vh !important;
   }
 
   .pack-number-left {
