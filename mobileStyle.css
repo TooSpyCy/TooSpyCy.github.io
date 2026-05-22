@@ -432,4 +432,33 @@
   .nav-text {
     display: none;
   } /* Cache les textes sur très petit écran */
+
+  /* Miniatures révélées — taille adaptée mobile */
+  .revealed-row {
+    gap: 8px;
+    max-width: 100%;
+    padding: 0 8px;
+    justify-content: center;
+  }
+
+  /* Pendant la révélation : 5 cartes côte à côte */
+  .revealed-mini {
+    width: min(17vw, 90px) !important; /* Override le min(10vw) du JS */
+  }
+
+  /* Quand tout est révélé : 2-3 cartes plus grandes par ligne */
+  .revealed-row[style*="14px"] .revealed-mini {
+    width: min(40vw, 160px) !important; /* Override le min(18vw) du JS */
+  }
+
+  .revealed-mini .mini-info {
+    padding: 4px 5px;
+    font-size: 9px;
+  }
+  .revealed-mini .mini-name {
+    font-size: 9px;
+  }
+  .revealed-mini .mini-ver {
+    font-size: 9px;
+  }
 }
