@@ -59,8 +59,7 @@
 </div>
 
 <div style="display:flex;gap:10px;margin-bottom:16px;max-width:500px;">
-  <input id="adminSearchInput" class="search-input" type="text" placeholder="Pseudo Twitch..."
-    oninput="adminSearchUser(this.value)">
+  <input id="adminSearchInput" class="search-input" type="text" placeholder="Pseudo Twitch..." oninput="adminSearchUser(this.value)">
 </div>
 
 <!-- Les suggestions apparaissent ici au fil de la frappe -->
@@ -129,10 +128,12 @@
   // ── Chargement de la liste des joueurs au démarrage ──────────
   // On charge tous les users une seule fois pour la recherche
 
-  (async function () {
-    if (!isAdmin) return;
-    _allUsers = await sbFetch('users?select=twitch_id,twitch_name,nbrpacks&order=twitch_name.asc');
-  })();
+  (
+    async function () {
+      if (!isAdmin) return;
+      _allUsers = await sbFetch('users?select=twitch_id,twitch_name,nbrpacks&order=twitch_name.asc');
+    }
+  )();
 
 
   // ── Recherche d'un joueur par pseudo ─────────────────────────
@@ -269,9 +270,7 @@
     const item        = owned[selectedColor];
 
     // Cherche l'image pour cette combinaison carte+couleur
-    const image = hasSelected
-      ? (_adminDessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '')
-      : '';
+    const image = hasSelected ? (_adminDessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '') : '';
 
     // Stocke les données pour le modal (clic sur la carte)
     _adminModalData[i] = hasSelected ? {

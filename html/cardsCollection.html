@@ -79,11 +79,15 @@
     // Structure : { "uuid-du-piment": { vert: item|null, jaune: item|null, ... } }
     const ownedMap = {};
     collection.forEach(item => {
+
       const carteId = item.carte_id;
+
       if (!ownedMap[carteId]) {
         ownedMap[carteId] = { vert: null, jaune: null, rouge: null, noir: null };
       }
+
       ownedMap[carteId][item.carteversion.color] = item;
+
     });
 
     // Calcule les stats pour le sous-titre
@@ -125,9 +129,7 @@
     const item        = owned[selectedColor];
 
     // Cherche l'image pour cette combinaison piment+couleur
-    const image = hasSelected
-      ? (_dessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '')
-      : '';
+    const image = hasSelected ? (_dessinMap[`${c.id}_${item.carteversion_id}`] || c.image_url || '') : '';
 
     // Stocke les données pour le modal (utilisé quand on clique sur la carte)
     _modalData[i] = hasSelected ? {
@@ -182,9 +184,7 @@
     }
 
     // Badge "×2", "×3"... si le joueur a plusieurs exemplaires
-    const qty = hasSelected && item.quantity > 1
-      ? `<span class="card-qty" style="position:absolute;right:5%">×${item.quantity}</span>`
-      : '';
+    const qty = hasSelected && item.quantity > 1 ? `<span class="card-qty" style="position:absolute;right:5%">×${item.quantity}</span>` : '';
 
     return `
       <div class="slot-item" id="slot-${i}"
@@ -233,9 +233,10 @@
     document.getElementById('modalVersion').textContent  = data.version;
     document.getElementById('modalVersion').style.color  = data.border;
     document.getElementById('modalScoville').textContent = data.scoville.toLocaleString('fr-FR') + ' Scoville';
-    document.getElementById('modalVisual').innerHTML     = data.image
-      ? `<img src="${data.image}" alt="${data.name}">`
-      : pepperSVG('vert', data.scoville);
+    document.getElementById('modalVisual').innerHTML     = data.image ? 
+                                                            `<img src="${data.image}" alt="${data.name}">`
+                                                            :
+                                                            pepperSVG('vert', data.scoville);
 
     // Adapte les couleurs du modal à la version de la carte
     const inner = document.querySelector('.card-modal-inner');
