@@ -1,66 +1,285 @@
 /* ============================================================
    MOBILE — SpycySite v2
+   Adapté à toutes les pages : collection, ouverture, admin, home
    ============================================================ */
 
 @media (max-width: 768px) {
 
-  /* Auth compact */
-  #authBar { top: 8px; right: 8px; }
-  .btn-twitch { padding: 8px 12px; font-size: 12px; }
+  /* ── Auth bar ─────────────────────────────────────────────── */
+  #authBar          { top: 8px; right: 8px; }
+  .btn-twitch       { padding: 8px 12px; font-size: 12px; }
+  .glass-pill       { padding: 3px 10px 3px 4px; }
+  #userName         { font-size: 12px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .avatar           { width: 26px; height: 26px; }
 
-  /* Nav → barre basse fixe */
+
+  /* ── Navigation → barre basse fixe ───────────────────────── */
   .col-left {
-    position: fixed; bottom: 0; left: 0; right: 0; top: auto;
-    height: auto; flex-direction: row; justify-content: space-around;
-    align-items: center; padding: 8px 12px !important;
-    border-right: none; border-top: 1px solid var(--glass-border);
-    z-index: 200; background: rgba(12,8,20,0.92);
+    position: fixed;
+    bottom: 0; left: 0; right: 0; top: auto;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 6px 8px !important;
+    border-right: none;
+    border-top: 1px solid var(--glass-border);
+    z-index: 200;
+    background: rgba(12, 8, 20, 0.95);
     backdrop-filter: blur(20px);
-    overflow: visible; gap: 0;
+    -webkit-backdrop-filter: blur(20px);
+    overflow: visible;
+    gap: 0;
   }
-  .nav-home { width: 44px; height: 44px; margin-bottom: 0; }
-  .nav-divider { display: none; }
-  .nav-group { flex-direction: row; width: auto; gap: 0; }
-  .nav-group-label { display: none; }
+
+  /* Logo home plus petit */
+  .nav-home {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0;
+    border-radius: 50%;
+    padding: 6px;
+  }
+
+  /* Cache les séparateurs et labels de groupe */
+  .nav-divider      { display: none; }
+  .nav-group-label  { display: none; }
+
+  /* Les groupes de boutons s'affichent en ligne */
+  .nav-group {
+    flex-direction: row;
+    width: auto;
+    gap: 0;
+  }
+
+  /* Chaque bouton nav : icône + texte empilés */
   .nav-btn {
-    flex-direction: column; gap: 2px; padding: 6px 10px;
-    font-size: 10px; align-items: center; width: auto;
+    flex-direction: column;
+    gap: 2px;
+    padding: 5px 8px;
+    font-size: 10px;
+    align-items: center;
+    width: auto;
+    border-radius: 10px;
+    border-color: transparent;
   }
-  .nav-text { font-size: 9px; }
-  .nav-icon { font-size: 18px; }
 
-  /* Contenu avec padding bas */
-  .col-right { height: auto; padding-bottom: 72px; }
-  .mainScreenContainer { padding: 16px 14px; }
+  .nav-btn.active {
+    background: var(--pink-glass);
+    border-color: transparent;
+  }
 
-  /* Hero */
-  .home-hero { padding: 50px 0 20px; }
-  .home-hero h1 { font-size: 26px; }
+  .nav-text  { font-size: 9px; }
+  .nav-icon  { display: flex; align-items: center; justify-content: center; }
+  .nav-icon svg { width: 20px; height: 20px; }
 
-  /* Stream vertical */
-  .stream-wrapper { flex-direction: column; height: auto; }
-  .livestream_spycy { height: 200px; }
-  .livechat_spycy   { height: 220px; border-left: none; border-top: 1px solid var(--glass-border); }
+  /* Badge de packs */
+  .pack-badge {
+    position: absolute;
+    top: 2px; right: 2px;
+    min-width: 16px; height: 16px;
+    font-size: 9px;
+  }
 
-  /* Grille cartes */
-  .cards-grid { grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 10px; }
+  /* Groupe admin visible dans la barre basse */
+  #adminNavGroup {
+    flex-direction: row;
+  }
 
-  /* Flip cards plus petites */
-  .flip-card { width: 115px; height: 162px; }
-  .flip-front .back-logo  { font-size: 34px; }
 
-  /* Pack card compact */
-  .pack-card { padding: 14px 16px; }
-  .pack-emoji { font-size: 32px; }
-  .pack-name  { font-size: 14px; }
+  /* ── Contenu principal ────────────────────────────────────── */
+  /* Padding bas pour ne pas être caché par la nav */
+  .col-right {
+    height: auto;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
 
-  /* Filtres wrap */
-  .filter-bar { gap: 6px; }
-  .filter-chip { padding: 5px 10px; font-size: 11px; }
+  .mainScreenContainer {
+    padding: 12px 12px;
+  }
+
+
+  /* ── En-têtes de page ─────────────────────────────────────── */
+  .page-header {
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .page-title  { font-size: 20px; }
+  .page-subtitle { font-size: 12px; }
+
+
+  /* ── Page d'accueil ───────────────────────────────────────── */
+  .home-hero            { padding: 40px 0 20px; }
+  .home-hero h1         { font-size: 26px; }
+  .home-hero .sub       { font-size: 14px; }
+
+  /* Stream : player + chat empilés verticalement */
+  .stream-section {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stream-video-wrapper {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+  }
+
+  .stream-chat-wrapper {
+    width: 100%;
+    height: 220px;
+  }
+
+  /* Cards info */
+  .info-grid  { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .info-card  { padding: 16px 12px; }
+  .info-card .ico { font-size: 28px; }
+  .info-card h3 { font-size: 13px; }
+
+  /* Réseaux sociaux */
+  .reseaux { gap: 10px; }
+  .rsn-btn { width: 40px; height: 40px; }
+
+
+  /* ── Collection ───────────────────────────────────────────── */
+  /* Grille de slots : 2 colonnes sur mobile */
+  .cards-grid-slots {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* Les slots ont des textes légèrement plus petits */
+  .slot-info          { padding: 6px 8px 2px; }
+  .card-name          { font-size: 11px; }
+  .card-scoville      { font-size: 10px; }
+
+  /* Les 4 boutons de couleur restent visibles */
+  .slot-ver-btns { padding: 4px 8px 8px; gap: 4px; }
+  .ver-btn       { width: 14px; height: 14px; }
+
+  /* Modal : plein écran en bas sur mobile */
+  .card-modal-overlay {
+    align-items: flex-end;
+  }
+
+  .card-modal-inner {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    padding: 20px 20px 32px;
+    flex-direction: row;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .modal-visual {
+    width: 120px;
+    flex-shrink: 0;
+    border-radius: 10px;
+  }
+
+  .modal-info   { flex: 1; }
+  .modal-name   { font-size: 16px; }
+  .modal-scoville { font-size: 13px; }
+  .modal-desc   { font-size: 12px; }
+
+
+  /* ── Ouverture de packs ───────────────────────────────────── */
+  .pack-stage {
+    gap: 12px;
+    padding: 12px 0 16px;
+    min-height: auto;
+  }
+
+  /* Le pack cliquable moins haut */
+  .pack-big {
+    height: 320px;
+  }
+
+  /* La pile de cartes s'adapte à l'écran */
+  .card-stack-wrapper {
+    height: min(42vh, 320px);
+  }
+
+  /* Compteur de cartes restantes */
+  .stack-counter { font-size: 13px; }
+
+  /* Miniatures révélées plus petites */
+  .revealed-row { gap: 6px; max-width: 100%; padding: 0 8px; }
+  .revealed-mini .mini-info { padding: 4px 5px; font-size: 9px; }
+  .revealed-mini .mini-name { font-size: 9px; }
+  .revealed-mini .mini-ver  { font-size: 9px; }
+
+
+  /* ── Probabilités ─────────────────────────────────────────── */
+  .proba-table th { padding: 10px 10px; font-size: 10px; }
+  .proba-table td { padding: 8px 10px; font-size: 12px; }
+  .proba-bar-bg   { width: 80px; }
+
+
+  /* ── Admin Stats ──────────────────────────────────────────── */
+  /* Les 3 blocs de stats en colonne sur mobile */
+  #statsContent > div:first-child {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stat-block       { padding: 18px 16px; }
+  .stat-block-value { font-size: 18px; }
+
+
+  /* ── Admin Collection ─────────────────────────────────────── */
+  /* L'input de recherche prend toute la largeur */
+  #adminSearchInput { font-size: 16px; } /* 16px évite le zoom auto sur iOS */
+
+  /* Les suggestions chips passent en grille */
+  #adminSuggestions {
+    gap: 6px;
+  }
+
+  .suggestion-chip { font-size: 12px; padding: 6px 12px; }
+
+
+  /* ── Boutons génériques ───────────────────────────────────── */
+  .btn-pink    { padding: 10px 20px; font-size: 13px; }
+  .btn-outline { padding: 9px 16px; font-size: 12px; }
+
 }
 
-@media (max-width: 380px) {
+
+/* ── Très petits écrans (iPhone SE, etc.) ─────────────────── */
+@media (max-width: 390px) {
+
   .home-hero h1 { font-size: 22px; }
-  .cards-grid   { grid-template-columns: repeat(2, 1fr); }
-  .flip-card    { width: 100px; height: 140px; }
+
+  /* 2 colonnes serrées */
+  .cards-grid-slots {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .ver-btn { width: 12px; height: 12px; }
+
+  /* Pack plus petit */
+  .pack-big { height: 260px; }
+
+  .card-stack-wrapper { height: min(38vh, 280px); }
+
+  /* Modal en colonne sur très petit écran */
+  .card-modal-inner {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .modal-visual { width: 100px; }
+
+  /* Nav encore plus compacte */
+  .nav-btn { padding: 4px 6px; }
+  .nav-text { display: none; } /* Cache les textes sur très petit écran */
+
 }
