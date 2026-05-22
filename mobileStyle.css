@@ -396,6 +396,10 @@
   .pack-number-left {
     bottom: 12vh !important;
   }
+
+  .card-modal-inner {
+    width: 350px;
+  }
 }
 
 /* ── Très petits écrans (iPhone SE, etc.) ─────────────────── */
