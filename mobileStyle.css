@@ -27,7 +27,7 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     width: 26px;
     height: 26px;
   }
-  
+
   /* ── Navigation → barre basse fixe ───────────────────────── */
   /* Layout : [ Cartes | Ouvrir ]  [ 🌶️ ]  [ Proba | Admin ] */
   .col-left {
@@ -90,7 +90,7 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     padding-left: 4px;
     gap: 0;
   }
-  
+
   /* Cache les séparateurs et labels de groupe */
   .nav-divider {
     display: none;
@@ -101,7 +101,7 @@ Adapté à toutes les pages : collection, ouverture, admin, home
   .nav-text {
     display: none;
   } /* Icônes uniquement sur mobile */
-  
+
   /* Chaque bouton nav : carré centré */
   .nav-btn {
     width: 44px;
@@ -116,12 +116,12 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     border-color: transparent;
     position: relative;
   }
-  
+
   .nav-btn.active {
     background: var(--pink-glass);
     border-color: transparent;
   }
-  
+
   .nav-icon {
     display: flex;
     align-items: center;
@@ -129,12 +129,12 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     width: 22px;
     height: 22px;
   }
-  
+
   .nav-icon svg {
     width: 22px;
     height: 22px;
   }
-  
+
   /* Badge de packs positionné sur le bouton */
   .pack-badge {
     position: absolute;
@@ -145,14 +145,14 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     font-size: 9px;
     padding: 0 3px;
   }
-  
+
   /* Groupe admin en ligne dans la barre */
   #adminNavGroup {
     display: none !important;
     flex-direction: row;
     align-items: center;
   }
-  
+
   /* ── Contenu principal ────────────────────────────────────── */
   /* Padding bas pour ne pas être caché par la nav */
   .col-right {
@@ -160,25 +160,25 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     min-height: 100vh;
     padding-bottom: 80px;
   }
-  
+
   .mainScreenContainer {
     padding: 12px 12px;
   }
-  
+
   /* ── En-têtes de page ─────────────────────────────────────── */
   .page-header {
     margin-bottom: 16px;
     flex-wrap: wrap;
     gap: 8px;
   }
-  
+
   .page-title {
     font-size: 20px;
   }
   .page-subtitle {
     font-size: 12px;
   }
-  
+
   /* ── Page d'accueil ───────────────────────────────────────── */
   .home-hero {
     padding: 40px 0 20px;
@@ -189,7 +189,7 @@ Adapté à toutes les pages : collection, ouverture, admin, home
   .home-hero .sub {
     font-size: 14px;
   }
-  
+
   /* Stream : player + chat empilés verticalement */
   .stream-section {
     flex-direction: column;
@@ -201,13 +201,13 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     aspect-ratio: 16 / 9;
     height: auto;
   }
-  
+
   .stream-chat-wrapper {
     width: 100%;
     height: 220px;
     display: none;
   }
-  
+
   /* Cards info */
   .info-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -222,7 +222,7 @@ Adapté à toutes les pages : collection, ouverture, admin, home
   .info-card h3 {
     font-size: 13px;
   }
-  
+
   /* Réseaux sociaux */
   .reseaux {
     gap: 10px;
@@ -231,14 +231,14 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     width: 40px;
     height: 40px;
   }
-  
+
   /* ── Collection ───────────────────────────────────────────── */
   /* Grille de slots : 2 colonnes sur mobile */
   .cards-grid-slots {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-  
+
   /* Les slots ont des textes légèrement plus petits */
   .slot-info {
     padding: 6px 8px 2px;
@@ -249,7 +249,7 @@ Adapté à toutes les pages : collection, ouverture, admin, home
   .card-scoville {
     font-size: 10px;
   }
-  
+
   /* Les 4 boutons de couleur restent visibles */
   .slot-ver-btns {
     padding: 4px 8px 8px;
@@ -259,7 +259,7 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     width: 14px;
     height: 14px;
   }
-  
+
   /* Modal : plein écran en bas sur mobile */
   /* .card-modal-overlay {
     align-items: flex-end;
@@ -296,29 +296,35 @@ Adapté à toutes les pages : collection, ouverture, admin, home
   .modal-desc {
     font-size: 12px;
   } */
-  
+
   /* ── Ouverture de packs ───────────────────────────────────── */
   .pack-stage {
     gap: 12px;
     padding: 12px 0 16px;
     min-height: auto;
+    height: auto;
+    justify-content: flex-start; /* Part du haut, évite le centrage qui coupe */
   }
-  
+
   /* Le pack cliquable moins haut */
   .pack-big {
     height: 320px;
   }
-  
+
   /* La pile de cartes s'adapte à l'écran */
   .card-stack-wrapper {
-    height: min(42vh, 320px);
+    /* 100dvh = hauteur réelle de l'écran sans la barre navigateur */
+    /* - 60px nav basse, - 80px infos carte, - 50px compteur, - 30px padding */
+    height: calc(100dvh - 220px);
+    max-height: 420px; /* Plafond sur grands écrans */
+    min-height: 200px; /* Plancher sur très petits */
   }
-  
+
   /* Compteur de cartes restantes */
   .stack-counter {
     font-size: 13px;
   }
-  
+
   /* Miniatures révélées plus petites */
   .revealed-row {
     gap: 6px;
@@ -335,7 +341,7 @@ Adapté à toutes les pages : collection, ouverture, admin, home
   .revealed-mini .mini-ver {
     font-size: 9px;
   }
-  
+
   /* ── Probabilités ─────────────────────────────────────────── */
   .proba-table th {
     padding: 10px 10px;
@@ -348,36 +354,36 @@ Adapté à toutes les pages : collection, ouverture, admin, home
   .proba-bar-bg {
     width: 80px;
   }
-  
+
   /* ── Admin Stats ──────────────────────────────────────────── */
   /* Les 3 blocs de stats en colonne sur mobile */
   #statsContent > div:first-child {
     grid-template-columns: 1fr !important;
   }
-  
+
   .stat-block {
     padding: 18px 16px;
   }
   .stat-block-value {
     font-size: 18px;
   }
-  
+
   /* ── Admin Collection ─────────────────────────────────────── */
   /* L'input de recherche prend toute la largeur */
   #adminSearchInput {
     font-size: 16px;
   } /* 16px évite le zoom auto sur iOS */
-  
+
   /* Les suggestions chips passent en grille */
   #adminSuggestions {
     gap: 6px;
   }
-  
+
   .suggestion-chip {
     font-size: 12px;
     padding: 6px 12px;
   }
-  
+
   /* ── Boutons génériques ───────────────────────────────────── */
   .btn-pink {
     padding: 10px 20px;
@@ -387,16 +393,16 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     padding: 9px 16px;
     font-size: 12px;
   }
-  
+
   .pack-click-label {
     position: absolute;
     bottom: 16vh !important;
   }
-  
+
   .pack-number-left {
     bottom: 12vh !important;
   }
-  
+
   .card-modal-inner {
     width: 350px;
   }
@@ -404,7 +410,6 @@ Adapté à toutes les pages : collection, ouverture, admin, home
 
 /* Samsung Galaxy S21 et écrans similaires (360px de large) */
 @media (max-width: 420px) {
-
   .pack-stage {
     min-height: auto;
     height: calc(100dvh - 60px); /* hauteur réelle moins la nav */
@@ -418,11 +423,10 @@ Adapté à toutes les pages : collection, ouverture, admin, home
     height: min(52vh, 300px);
   }
 
-  /* Pack d'accueil aussi */
   .pack-big {
-    height: min(55vh, 320px);
+    height: calc(100dvh - 160px);
+    max-height: 460px;
   }
-
 }
 
 /* ── Très petits écrans (iPhone SE, etc.) ─────────────────── */
@@ -430,18 +434,18 @@ Adapté à toutes les pages : collection, ouverture, admin, home
   .home-hero h1 {
     font-size: 22px;
   }
-  
+
   /* 2 colonnes serrées */
   .cards-grid-slots {
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
   }
-  
+
   .ver-btn {
     width: 12px;
     height: 12px;
   }
-  
+
   /* Pack plus petit */
   .pack-big {
     height: 260px;
