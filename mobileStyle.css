@@ -483,3 +483,27 @@
     bottom: 12vh !important;
   }
 }
+
+
+/* Samsung Galaxy S21 et écrans similaires (360px de large) */
+@media (max-width: 420px) {
+
+  .pack-stage {
+    min-height: auto;
+    height: calc(100dvh - 60px); /* hauteur réelle moins la nav */
+    justify-content: flex-start;
+    padding-top: 12px;
+    overflow-y: auto;
+  }
+
+  /* Carte plus petite pour laisser de la place au compteur + miniatures */
+  .card-stack-wrapper {
+    height: min(52vh, 300px);
+  }
+
+  /* Pack d'accueil aussi */
+  .pack-big {
+    height: min(55vh, 320px);
+  }
+
+}
