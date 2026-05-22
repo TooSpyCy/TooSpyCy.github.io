@@ -148,6 +148,7 @@
 
   /* Groupe admin en ligne dans la barre */
   #adminNavGroup {
+    display:none;
     flex-direction: row;
     align-items: center;
   }
