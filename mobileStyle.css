@@ -148,7 +148,7 @@
 
   /* Groupe admin en ligne dans la barre */
   #adminNavGroup {
-    display:none;
+    display: none !important;
     flex-direction: row;
     align-items: center;
   }
