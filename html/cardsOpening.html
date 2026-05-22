@@ -1,15 +1,6 @@
 <!-- OUVERTURE DE PACKS -->
 <style>
-  .opening-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 75vh;
-    gap: 20px;
-  }
-
-  /* ── Pack fermé ─────────────────────────────────────────── */
+  /* ── Zone principale ─────────────────────────────────────── */
   .pack-stage {
     display: flex;
     flex-direction: column;
@@ -19,12 +10,11 @@
     min-height: 92vh;
     width: 100%;
     padding: 20px 0;
-    /* ← ajoute ce padding */
     box-sizing: border-box;
     overflow-y: auto;
-    /* ← permet le scroll si besoin */
   }
 
+  /* ── Le gros pack cliquable ──────────────────────────────── */
   .pack-big {
     position: relative;
     cursor: pointer;
@@ -36,14 +26,10 @@
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  .pack-big:hover {
-    transform: scale(1.06) translateY(-8px);
-  }
+  .pack-big:hover              { transform: scale(1.06) translateY(-8px); }
+  .pack-big:hover .pack-glow  { opacity: 1; }
 
-  .pack-big:hover .pack-glow {
-    opacity: 1;
-  }
-
+  /* Halo lumineux autour du pack */
   .pack-glow {
     position: absolute;
     inset: -40px;
@@ -55,19 +41,11 @@
   }
 
   @keyframes pulseGlow {
-
-    0%,
-    100% {
-      transform: scale(1);
-      opacity: 0.55;
-    }
-
-    50% {
-      transform: scale(1.15);
-      opacity: 0.85;
-    }
+    0%, 100% { transform: scale(1);    opacity: 0.55; }
+    50%       { transform: scale(1.15); opacity: 0.85; }
   }
 
+  /* Texte clignotant "Cliquer pour ouvrir" */
   .pack-click-label {
     font-size: 15px;
     color: var(--text-sub);
@@ -77,32 +55,15 @@
   }
 
   @keyframes blink {
-
-    0%,
-    100% {
-      opacity: 1
-    }
-
-    50% {
-      opacity: 0.3
-    }
+    0%, 100% { opacity: 1;   }
+    50%       { opacity: 0.3; }
   }
 
+  /* Animation d'explosion du pack */
   @keyframes packBurst {
-    0% {
-      transform: scale(1) rotate(0deg);
-      opacity: 1;
-    }
-
-    40% {
-      transform: scale(1.4) rotate(-8deg);
-      opacity: 1;
-    }
-
-    100% {
-      transform: scale(0) rotate(15deg);
-      opacity: 0;
-    }
+    0%   { transform: scale(1)   rotate(0deg);  opacity: 1; }
+    40%  { transform: scale(1.4) rotate(-8deg); opacity: 1; }
+    100% { transform: scale(0)   rotate(15deg); opacity: 0; }
   }
 
   .pack-bursting {
@@ -110,7 +71,7 @@
     pointer-events: none;
   }
 
-  /* ── Particules ─────────────────────────────────────────── */
+  /* ── Particules ──────────────────────────────────────────── */
   .particles-container {
     position: fixed;
     inset: 0;
@@ -126,18 +87,11 @@
   }
 
   @keyframes particleFly {
-    0% {
-      transform: translate(0, 0) scale(1);
-      opacity: 1;
-    }
-
-    100% {
-      transform: translate(var(--tx), var(--ty)) scale(0);
-      opacity: 0;
-    }
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
   }
 
-  /* ── Stack de cartes ────────────────────────────────────── */
+  /* ── Pile de cartes ──────────────────────────────────────── */
   .card-stack-wrapper {
     position: relative;
     height: 500px;
@@ -154,6 +108,8 @@
     background: rgba(26, 14, 42, 0.8);
   }
 
+  .stack-shadow:nth-child(1) { transform: translateY(8px) rotate(2deg);   z-index: 1; opacity: 0.5; }
+  .stack-shadow:nth-child(2) { transform: translateY(4px) rotate(-1deg);  z-index: 2; opacity: 0.7; }
 
   .stack-top-card {
     position: absolute;
@@ -166,27 +122,7 @@
     transition: transform 0.2s ease;
   }
 
-  .stack-shadow:nth-child(1) {
-    transform: translateY(8px) rotate(2deg);
-    z-index: 1;
-    opacity: 0.5;
-  }
-
-  .stack-shadow:nth-child(2) {
-    transform: translateY(4px) rotate(-1deg);
-    z-index: 2;
-    opacity: 0.7;
-  }
-
-
-  .stack-top-card:hover:not(.is-flipping) {
-    transform: translateY(-6px) scale(1.03);
-  }
-
-  .stack-top-card {
-    transition: transform 0.2s ease;
-  }
-
+  .stack-top-card:hover:not(.is-flipping) { transform: translateY(-6px) scale(1.03); }
 
   .stack-card-inner {
     position: relative;
@@ -196,33 +132,9 @@
     border-radius: 14px;
   }
 
-  .stack-top-card.is-flipping .stack-card-inner {
-    animation: flipReveal 0.7s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
-  }
-
-  @keyframes flipReveal {
-    0% {
-      transform: rotateY(0deg) translateX(0px);
-    }
-
-    40% {
-      transform: rotateY(90deg) translateX(0px);
-    }
-
-    60% {
-      transform: rotateY(270deg) translateX(0px);
-    }
-
-    100% {
-      transform: rotateY(360deg) translateX(600px);
-      opacity: 0;
-    }
-  }
-
   .stack-face {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
     border-radius: 14px;
@@ -236,7 +148,7 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
   }
 
-  /* Cartes révélées en bas ────────────────────────────────── */
+  /* ── Miniatures des cartes révélées ─────────────────────── */
   .revealed-row {
     display: flex;
     gap: 10px;
@@ -245,6 +157,7 @@
     max-width: 700px;
   }
 
+  /* Ratio 3/4 uniquement sur l'image — la barre d'info s'ajoute en dessous */
   .revealed-mini {
     border-radius: 10px;
     border: 2px solid #444;
@@ -256,21 +169,13 @@
   }
 
   @keyframes slideInBottom {
-    from {
-      opacity: 0;
-      transform: translateY(30px) scale(0.8);
-    }
-
-    to {
-      opacity: 1;
-      transform: none;
-    }
+    from { opacity: 0; transform: translateY(30px) scale(0.8); }
+    to   { opacity: 1; transform: none; }
   }
 
   .revealed-mini .mini-img {
     width: 100%;
     aspect-ratio: 3 / 4;
-    /* ← ratio seulement sur l'image */
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -279,16 +184,8 @@
     flex-shrink: 0;
   }
 
-  .revealed-mini .mini-img img {
-    width: 100%;
-    height: 100%;
-    /* object-fit: cover; */
-  }
-
-  .revealed-mini .mini-img .pepper-svg {
-    width: 80%;
-    height: 80%;
-  }
+  .revealed-mini .mini-img img       { width: 100%; height: 100%; }
+  .revealed-mini .mini-img .pepper-svg { width: 80%; height: 80%; }
 
   .revealed-mini .mini-info {
     padding: 6px 8px;
@@ -301,65 +198,9 @@
     flex-shrink: 0;
   }
 
-  .revealed-mini .mini-name {
-    font-weight: 700;
-    color: var(--text);
-  }
+  .revealed-mini .mini-name { font-weight: 700; color: var(--text); }
+  .revealed-mini .mini-ver  { font-weight: 600; }
 
-  .revealed-mini .mini-ver {
-    font-weight: 600;
-  }
-
-  /* Glows par couleur sur reveal */
-  @keyframes glow-vert {
-
-    0%,
-    100% {
-      box-shadow: 0 0 12px rgba(0, 230, 118, 0.4)
-    }
-
-    50% {
-      box-shadow: 0 0 50px rgba(0, 230, 118, 1)
-    }
-  }
-
-  @keyframes glow-jaune {
-
-    0%,
-    100% {
-      box-shadow: 0 0 12px rgba(255, 215, 0, 0.4)
-    }
-
-    50% {
-      box-shadow: 0 0 50px rgba(255, 215, 0, 1)
-    }
-  }
-
-  @keyframes glow-rouge {
-
-    0%,
-    100% {
-      box-shadow: 0 0 15px rgba(255, 23, 68, 0.4)
-    }
-
-    50% {
-      box-shadow: 0 0 60px rgba(255, 23, 68, 1)
-    }
-  }
-
-  @keyframes glow-noir {
-
-    0%,
-    100% {
-      box-shadow: 0 0 20px rgba(220, 220, 220, 0.3)
-    }
-
-    50% {
-      box-shadow: 0 0 80px rgba(220, 220, 220, 1)
-    }
-  }
-
-  /* Compteur ─────────────────────────────────────────────── */
   .stack-counter {
     font-size: 16px;
     color: var(--text-muted);
@@ -367,7 +208,6 @@
     letter-spacing: 0.05em;
   }
 
-  /* Vide / loading ────────────────────────────────────────── */
   .no-packs-stage {
     text-align: center;
     padding: 60px 20px;
@@ -378,43 +218,39 @@
   }
 
   @keyframes popIn {
-    from {
-      transform: scale(0.8);
-      opacity: 0;
-    }
-
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
   }
 </style>
 
-<!-- Vue pack direct -->
 <div id="packStage" class="pack-stage">
-  <div class="loading-cards">
-    <div class="spinner"></div>
-  </div>
+  <div class="loading-cards"><div class="spinner"></div></div>
 </div>
 
-<!-- Particules -->
 <div class="particles-container" id="particlesContainer"></div>
 
 <script>
+
+  // ── Configuration ─────────────────────────────────────────────
+  // Ordre pour trier les cartes du moins rare au plus rare
   const RARITY_ORDER = { vert: 0, jaune: 1, rouge: 2, noir: 3 };
+
   const V_STYLES = {
-    vert: { bg: '#0d2d1a', border: '#00e676', glow: 'rgba(0,230,118,0.5)', label: '🟢 Vert' },
-    jaune: { bg: '#2d2600', border: '#ffd700', glow: 'rgba(255,215,0,0.5)', label: '🟡 Jaune' },
-    rouge: { bg: '#2d0a0a', border: '#ff1744', glow: 'rgba(255,23,68,0.6)', label: '🔴 Rouge' },
-    noir: { bg: '#0a0a12', border: '#e0e0e0', glow: 'rgba(220,220,220,0.7)', label: '⚫ Noir' },
+    vert:  { bg: '#0d2d1a', border: '#00e676', glow: 'rgba(0,230,118,0.5)',   label: '🟢 Vert'  },
+    jaune: { bg: '#2d2600', border: '#ffd700', glow: 'rgba(255,215,0,0.5)',   label: '🟡 Jaune' },
+    rouge: { bg: '#2d0a0a', border: '#ff1744', glow: 'rgba(255,23,68,0.6)',   label: '🔴 Rouge' },
+    noir:  { bg: '#0a0a12', border: '#e0e0e0', glow: 'rgba(220,220,220,0.7)', label: '⚫ Noir'  },
   };
 
-  let _sortedCards = [];
-  let _currentIndex = 0;
-  let _revealed = [];
-  let _isFlipping = false;
-  let _drawnPromise = null;
 
+  // ── Variables d'état ──────────────────────────────────────────
+  let _sortedCards  = []; // 5 cartes tirées, triées du moins rare au plus rare
+  let _currentIndex = 0;  // Index de la carte sur le dessus de la pile
+  let _revealed     = []; // Cartes déjà révélées (miniatures en bas)
+  let _isFlipping   = false; // Empêche les double-clics pendant l'animation
+
+
+  // ── Démarrage ─────────────────────────────────────────────────
   (async function () {
     const count = currentProfile?.nbrpacks || 0;
     if (!currentTwitchId || count <= 0) {
@@ -424,157 +260,180 @@
     showBigPack(count);
   })();
 
+
+  // ── Affiche le message "aucun pack" ───────────────────────────
   function showNoPacks(count) {
     document.getElementById('packStage').innerHTML = `
-    <div class="no-packs-stage">
-      <div style="font-size:52px">${currentTwitchId ? '📭' : '🔒'}</div>
-      <p style="font-size:15px;color:var(--text-sub)">
-        ${currentTwitchId ? 'Aucun pack disponible.<br><small style="font-size:12px;color:var(--text-muted)">Les packs s\'obtiennent via les points de chaîne Twitch !</small>' : 'Connecte-toi avec Twitch !'}
-      </p>
-    </div>`;
+      <div class="no-packs-stage">
+        <div style="font-size:52px">${currentTwitchId ? '📭' : '🔒'}</div>
+        <p style="font-size:15px;color:var(--text-sub)">
+          ${currentTwitchId
+            ? 'Aucun pack disponible.<br><small style="font-size:12px;color:var(--text-muted)">Les packs s\'obtiennent via les points de chaîne Twitch !</small>'
+            : 'Connecte-toi avec Twitch !'}
+        </p>
+      </div>`;
   }
 
+
+  // ── Affiche le pack cliquable ─────────────────────────────────
   function showBigPack(count) {
     document.getElementById('packStage').innerHTML = `
-    <div class="pack-big" id="bigPack" onclick="triggerPackOpen()">
-      <img src="cartes/packOpening.png" alt="Pack Spycy"
-           style="width:100%;height:100%;object-fit:contain;">
-    </div>
-    <div class="pack-click-label" style="position:absolute;bottom:8vh;">✨ Cliquer pour ouvrir ✨</div>
-    <div class="pack-number-left" style="font-size:12px;color:var(--text-muted);position:absolute;bottom:5vh;">${count} pack${count > 1 ? 's' : ''} disponible${count > 1 ? 's' : ''}</div>
-  `;
+      <div class="pack-big" id="bigPack" onclick="triggerPackOpen()">
+        <img src="cartes/packOpening.png" alt="Pack Spycy"
+             style="width:100%;height:100%;object-fit:contain;">
+      </div>
+      <div class="pack-click-label" style="position:absolute;bottom:8vh;">✨ Cliquer pour ouvrir ✨</div>
+      <div class="pack-number-left" style="font-size:12px;color:var(--text-muted);position:absolute;bottom:5vh;">
+        ${count} pack${count > 1 ? 's' : ''} disponible${count > 1 ? 's' : ''}
+      </div>`;
   }
 
+
+  // ── Ouvre le pack (au clic) ───────────────────────────────────
   async function triggerPackOpen() {
+
     const pack = document.getElementById('bigPack');
     if (!pack) return;
+
     pack.style.pointerEvents = 'none';
     pack.classList.add('pack-bursting');
     spawnParticles();
 
+    // Tirage sécurisé côté serveur via Edge Function
     const drawn = await openPack();
 
     if (!drawn || !drawn.length) {
       setTimeout(() => {
         document.getElementById('packStage').innerHTML = `
-        <div class="no-packs-stage">
-          <div style="font-size:52px">⚠️</div>
-          <p style="color:var(--text-sub)">Erreur lors de l'ouverture.</p>
-          <button class="btn-pink" onclick="setNewHTML('cardsOpening')">Réessayer</button>
-        </div>`;
+          <div class="no-packs-stage">
+            <div style="font-size:52px">⚠️</div>
+            <p style="color:var(--text-sub)">Erreur lors de l'ouverture.</p>
+            <button class="btn-pink" onclick="setNewHTML('cardsOpening')">Réessayer</button>
+          </div>`;
       }, 600);
       return;
     }
 
-    _sortedCards = [...drawn].sort((a, b) => RARITY_ORDER[a.version.color] - RARITY_ORDER[b.version.color]);
+    // Trie du moins rare au plus rare → la plus rare apparaît en dernier
+    _sortedCards  = [...drawn].sort((a, b) => RARITY_ORDER[a.version.color] - RARITY_ORDER[b.version.color]);
     _currentIndex = 0;
-    _revealed = [];
-    _isFlipping = false;
+    _revealed     = [];
+    _isFlipping   = false;
 
+    // Ajoute l'URL d'image à chaque carte
     const dessinMap = await getDessinMap();
-    _sortedCards = _sortedCards.map(d => ({
-      ...d,
-      image: dessinMap[`${d.carte.id}_${d.version.id}`] || d.carte.image_url || ''
+    _sortedCards = _sortedCards.map(carte => ({
+      ...carte,
+      image: dessinMap[`${carte.carte.id}_${carte.version.id}`] || carte.carte.image_url || ''
     }));
 
+    // Attend la fin de l'animation d'explosion
     setTimeout(() => renderStackView(), 650);
   }
 
-  function showStackView() {
-    renderStackView();
-  }
 
+  // ── Affiche la pile de cartes ─────────────────────────────────
   function renderStackView() {
-    const remaining = _sortedCards.length - _currentIndex;
 
+    const remaining = _sortedCards.length - _currentIndex;
+    const topCard   = _sortedCards[_currentIndex];
+
+    // Ombres derrière la carte du dessus pour l'effet de pile
     const shadowsHTML = remaining > 1
       ? `<div class="stack-shadow"></div><div class="stack-shadow"></div>`
-      : remaining === 1 ? `<div class="stack-shadow"></div>` : '';
-
-    const topCard = _sortedCards[_currentIndex];
+      : remaining === 1
+        ? `<div class="stack-shadow"></div>`
+        : '';
 
     const stackHTML = remaining > 0 ? `
-  <div class="card-stack-wrapper">
-    ${shadowsHTML}
-    <div class="stack-top-card" id="stackTopCard" onclick="revealTopCard()">
-      <div class="stack-card-inner">
-        <div class="stack-face stack-front" style="
-          border: 2px solid ${V_STYLES[topCard.version.color].border};
-          background: ${V_STYLES[topCard.version.color].bg};
-          box-shadow: 0 0 20px ${V_STYLES[topCard.version.color].glow};
-          display: flex; flex-direction: column;
-        ">
-          <div style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
-            ${topCard.image
-        ? `<img src="${topCard.image}" alt="${topCard.carte.name}" style="width:100%;height:100%;">`
-        : pepperSVG(topCard.version.color, topCard.carte.scoville)}
-          </div>
-          <div style="padding:10px 12px;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;gap:3px;">
-            <span style="font-size:14px;font-weight:800;color:var(--text)">${topCard.carte.name}</span>
-            <span style="font-size:12px;font-weight:700;color:${V_STYLES[topCard.version.color].border}">${topCard.version.emoji} ${topCard.version.label}</span>
-            <span style="font-size:16px;color:var(--text)">${topCard.carte.scoville.toLocaleString('fr-FR')} Scoville</span>
+      <div class="card-stack-wrapper">
+        ${shadowsHTML}
+        <div class="stack-top-card" id="stackTopCard" onclick="revealTopCard()">
+          <div class="stack-card-inner">
+            <div class="stack-face stack-front" style="
+              border: 2px solid ${V_STYLES[topCard.version.color].border};
+              background: ${V_STYLES[topCard.version.color].bg};
+              box-shadow: 0 0 20px ${V_STYLES[topCard.version.color].glow};
+              display: flex; flex-direction: column;
+            ">
+              <div style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);">
+                ${topCard.image
+                  ? `<img src="${topCard.image}" alt="${topCard.carte.name}" style="width:100%;height:100%;">`
+                  : pepperSVG(topCard.version.color, topCard.carte.scoville)}
+              </div>
+              <div style="padding:10px 12px;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;gap:3px;">
+                <span style="font-size:14px;font-weight:800;color:var(--text)">${topCard.carte.name}</span>
+                <span style="font-size:12px;font-weight:700;color:${V_STYLES[topCard.version.color].border}">${topCard.version.emoji} ${topCard.version.label}</span>
+                <span style="font-size:16px;color:var(--text)">${topCard.carte.scoville.toLocaleString('fr-FR')} Scoville</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="stack-counter">${remaining-1} carte${(remaining-1) > 1 ? 's' : ''} restante${(remaining-1) > 1 ? 's' : ''} — clique pour passer</div>
-  ` : `
-    <div style="font-size:20px;font-weight:700;color:var(--pink-light)">Toutes les cartes révélées !</div>
-    <button class="btn-outline" style="margin-top:8px" onclick="returnToPacks()">← Retour</button>
-  `;
+      <div class="stack-counter">
+        ${remaining - 1} carte${(remaining - 1) > 1 ? 's' : ''} restante${(remaining - 1) > 1 ? 's' : ''} — clique pour passer
+      </div>
+    ` : `
+      <div style="font-size:20px;font-weight:700;color:var(--pink-light)">Toutes les cartes révélées !</div>
+      <button class="btn-outline" style="margin-top:8px" onclick="returnToPacks()">← Retour</button>
+    `;
 
-    const allRevealed = remaining === 0;
-    // const cardH = allRevealed ? 'min(36vh, 280px)' : 'min(18vh, 140px)';
-    const cardW = allRevealed ? 'min(18vw, 200px)' : 'min(10vw, 110px)';
+    // Taille des miniatures : plus grandes quand tout est révélé
+    const toutesRevealees = remaining === 0;
+    const largeurMini     = toutesRevealees ? 'min(18vw, 200px)' : 'min(10vw, 110px)';
+
     const revealedHTML = _revealed.length > 0 ? `
-  <div class="revealed-row" style="gap:${allRevealed ? '14px' : '8px'};">
-    ${_revealed.map(d => {
-      const s = V_STYLES[d.version.color];
-      return `
-        <div class="revealed-mini" style="
-            width:${cardW};
-            border-color:${s.border};
-            background:${s.bg};
-            box-shadow:0 0 ${allRevealed ? '20px' : '8px'} ${s.glow};
-            ${allRevealed ? 'animation:popIn 0.3s ease both;' : ''}
-        ">
-          <div class="mini-img">
-            ${d.image ? `<img src="${d.image}" alt="${d.carte.name}">` : pepperSVG(d.version.color, d.carte.scoville)}
-          </div>
-          <div class="mini-info">
-            <span class="mini-name">${d.carte.name}</span>
-            <span class="mini-ver" style="color:${s.border}">${d.version.emoji} ${d.version.label}</span>
-          </div>
-        </div>`;
-    }).join('')}
-  </div>
-` : '';
+      <div class="revealed-row" style="gap:${toutesRevealees ? '14px' : '8px'};">
+        ${_revealed.map(carte => {
+          const s = V_STYLES[carte.version.color];
+          return `
+            <div class="revealed-mini" style="
+              width:${largeurMini};
+              border-color:${s.border};
+              background:${s.bg};
+              box-shadow:0 0 ${toutesRevealees ? '20px' : '8px'} ${s.glow};
+              ${toutesRevealees ? 'animation:popIn 0.3s ease both;' : ''}
+            ">
+              <div class="mini-img">
+                ${carte.image
+                  ? `<img src="${carte.image}" alt="${carte.carte.name}">`
+                  : pepperSVG(carte.version.color, carte.carte.scoville)}
+              </div>
+              <div class="mini-info">
+                <span class="mini-name">${carte.carte.name}</span>
+                <span class="mini-ver" style="color:${s.border}">${carte.version.emoji} ${carte.version.label}</span>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    ` : '';
 
-    document.getElementById('packStage').innerHTML = `
-    ${stackHTML}
-    ${revealedHTML}
-  `;
+    document.getElementById('packStage').innerHTML = `${stackHTML}${revealedHTML}`;
   }
 
+
+  // ── Révèle la carte du dessus ─────────────────────────────────
   function revealTopCard() {
+
     if (_isFlipping) return;
+
     const cardEl = document.getElementById('stackTopCard');
     if (!cardEl) return;
 
     _isFlipping = true;
     cardEl.style.pointerEvents = 'none';
 
-    // Animation : glisse vers le haut et disparaît
+    // La carte glisse vers le haut et disparaît
     cardEl.style.transition = 'transform 0.45s ease-in, opacity 0.45s ease-in';
-    cardEl.style.transform = 'translateY(-120%) rotate(-8deg)';
-    cardEl.style.opacity = '0';
+    cardEl.style.transform  = 'translateY(-120%) rotate(-8deg)';
+    cardEl.style.opacity    = '0';
 
+    // Vibration mobile selon la rareté
     if (navigator.vibrate) {
-      const color = _sortedCards[_currentIndex].version.color;
-      if (color === 'noir') navigator.vibrate([80, 40, 80, 40, 200]);
-      else if (color === 'rouge') navigator.vibrate([60, 30, 100]);
-      else navigator.vibrate(30);
+      const couleur = _sortedCards[_currentIndex].version.color;
+      if (couleur === 'noir')       navigator.vibrate([80, 40, 80, 40, 200]);
+      else if (couleur === 'rouge') navigator.vibrate([60, 30, 100]);
+      else                          navigator.vibrate(30);
     }
 
     setTimeout(() => {
@@ -585,36 +444,50 @@
     }, 450);
   }
 
+
+  // ── Particules d'explosion ────────────────────────────────────
   function spawnParticles() {
+
     const container = document.getElementById('particlesContainer');
-    const colors = ['#ff4d8d', '#ff80ab', '#ffd700', '#00e676', '#b039d4', '#ffffff', '#ff1744'];
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 2;
+    const couleurs  = ['#ff4d8d', '#ff80ab', '#ffd700', '#00e676', '#b039d4', '#ffffff', '#ff1744'];
+    const centreX   = window.innerWidth  / 2;
+    const centreY   = window.innerHeight / 2;
+
     for (let i = 0; i < 45; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      const ang = Math.random() * Math.PI * 2;
-      const d = 120 + Math.random() * 320;
-      p.style.cssText = `
-      left:${cx}px;top:${cy}px;
-      background:${colors[Math.floor(Math.random() * colors.length)]};
-      width:${4 + Math.random() * 8}px;height:${4 + Math.random() * 8}px;
-      border-radius:${Math.random() > 0.4 ? '50%' : '3px'};
-      --tx:${Math.cos(ang) * d}px;--ty:${Math.sin(ang) * d}px;
-      animation-duration:${0.8 + Math.random() * 0.7}s;
-      animation-delay:${Math.random() * 0.15}s;
-    `;
-      container.appendChild(p);
-      setTimeout(() => p.remove(), 1600);
+      const particule = document.createElement('div');
+      particule.className = 'particle';
+
+      const angle    = Math.random() * Math.PI * 2;
+      const distance = 120 + Math.random() * 320;
+
+      particule.style.cssText = `
+        left: ${centreX}px; top: ${centreY}px;
+        background: ${couleurs[Math.floor(Math.random() * couleurs.length)]};
+        width:  ${4 + Math.random() * 8}px;
+        height: ${4 + Math.random() * 8}px;
+        border-radius: ${Math.random() > 0.4 ? '50%' : '3px'};
+        --tx: ${Math.cos(angle) * distance}px;
+        --ty: ${Math.sin(angle) * distance}px;
+        animation-duration: ${0.8 + Math.random() * 0.7}s;
+        animation-delay:    ${Math.random() * 0.15}s;
+      `;
+
+      container.appendChild(particule);
+      setTimeout(() => particule.remove(), 1600);
     }
   }
 
+
+  // ── Retour à l'accueil des packs ──────────────────────────────
   async function returnToPacks() {
     refreshProfile();
     setNewHTML('cardsOpening');
   }
 
+
+  // Expose les fonctions au HTML (nécessaire à cause du IIFE de tools.js)
   window.triggerPackOpen = triggerPackOpen;
-  window.revealTopCard = revealTopCard;
-  window.returnToPacks = returnToPacks;
+  window.revealTopCard   = revealTopCard;
+  window.returnToPacks   = returnToPacks;
+
 </script>
