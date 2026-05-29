@@ -67,7 +67,7 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
+  /* background:
     radial-gradient(
       ellipse 60% 50% at 10% 60%,
       rgba(255, 77, 141, 0.12) 0%,
@@ -80,10 +80,10 @@ body {
     ),
     radial-gradient(
       ellipse 80% 60% at 50% 100%,
-      rgba(255, 77, 141, 0.06) 0%,
+      rgba(202, 80, 125, 0.06) 0%,
       transparent 60%
     ),
-    var(--bg);
+    var(--bg); */
 }
 #bgDots {
   display:none;
