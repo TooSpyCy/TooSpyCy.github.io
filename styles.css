@@ -67,23 +67,16 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* background:
-    radial-gradient(
-      ellipse 60% 50% at 10% 60%,
-      rgba(255, 77, 141, 0.12) 0%,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 50% 40% at 90% 20%,
-      rgba(156, 39, 176, 0.1) 0%,
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 80% 60% at 50% 100%,
-      rgba(202, 80, 125, 0.06) 0%,
-      transparent 60%
-    ),
-    var(--bg); */
+  background:
+    /* Lueur rose chaude en bas à gauche — comme une source de lumière */
+    radial-gradient(ellipse 55% 45% at 5% 95%,  rgba(255, 77, 141, 0.14) 0%, transparent 65%),
+    /* Lueur violette froide en haut à droite — contrebalance */
+    radial-gradient(ellipse 45% 50% at 95% 5%,  rgba(140, 50, 220, 0.09) 0%, transparent 60%),
+    /* Halo rose très doux au centre — donne de la profondeur */
+    radial-gradient(ellipse 70% 40% at 50% 55%,  rgba(255, 100, 160, 0.05) 0%, transparent 65%),
+    /* Touche rose-or subtile en haut à gauche */
+    radial-gradient(ellipse 35% 30% at 15% 8%,  rgba(255, 120, 100, 0.06) 0%, transparent 55%),
+    var(--bg);
 }
 #bgDots {
   display:none;
