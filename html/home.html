@@ -47,12 +47,12 @@
 </div>
 
 <script>
-// Délai de 2s pour laisser Supabase s'initialiser avant Twitch
-setTimeout(function() {
+setTimeout(function () {
+  var host = window.location.hostname;
   document.getElementById('twitchStream').src =
-    'https://player.twitch.tv/?channel=toospycy&parent=toospysite.eu';
+    'https://player.twitch.tv/?channel=toospycy&parent=' + host;
   document.getElementById('twitchChat').src =
-    'https://www.twitch.tv/embed/toospycy/chat?parent=toospysite.eu';
+    'https://www.twitch.tv/embed/toospycy/chat?parent=' + host;
 }, 10);
-window.loadStream = function() {};
+window.loadStream = function () {};
 </script>
