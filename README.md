@@ -7,7 +7,7 @@
 **Site communautaire avec système de collection de cartes piments**  
 Hébergé sur GitHub Pages · Backend Supabase · Intégration Twitch
 
-[![Site en ligne](https://img.shields.io/badge/Site-toospycy.github.io-ff4d8d?style=for-the-badge&logo=github)](https://toospycy.github.io)
+[![Site en ligne](https://img.shields.io/badge/Site-toospycy.eu-ff4d8d?style=for-the-badge&logo=github)](https://toospycy.eu)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
 [![Twitch](https://img.shields.io/badge/Stream-TooSpyCy-9147ff?style=for-the-badge&logo=twitch)](https://twitch.tv/TooSpyCy)
 
