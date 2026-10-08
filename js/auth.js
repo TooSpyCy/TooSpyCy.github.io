@@ -139,7 +139,7 @@ async function refreshProfile() {
     currentProfile = data;
     isAdmin        = currentProfile.is_admin === true;
 
-    console.log('✅ Profil chargé :', currentProfile);
+    // console.log('✅ Profil chargé :', currentProfile);
 
     // Met à jour le badge de packs et la nav admin
     updatePackCount();
